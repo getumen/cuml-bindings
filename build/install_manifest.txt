@@ -1,2 +1,0 @@
-/usr/local/lib/libcuml4c.so
-/usr/local/include/cuml4c/fil.h
