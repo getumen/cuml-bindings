@@ -1,6 +1,6 @@
 package cuml4go
 
-// #cgo LDFLAGS: -lcuml4c -lcuml++ -lcuml
+// #cgo LDFLAGS: -lcuml4c -lcuml++ -lcuml -lcumlprims
 // #include <stdlib.h>
 // #include "cuml4c/fil.h"
 import "C"

@@ -5,7 +5,6 @@
 #include "preprocessor.h"
 #include "stream_allocator.h"
 #include "treelite_utils.cuh"
-#include "pinned_host_vector.h"
 #include "cuml4c/fil.h"
 
 #include <cuml/fil/fil.h>
@@ -73,11 +72,17 @@ namespace
 
 } // namespace
 
-__host__ int FILLoadModel(int const model_type, const char *filename,
-                          int const algo, bool const classification,
-                          float const threshold, int const storage_type,
-                          int const blocks_per_sm, int const threads_per_tree,
-                          int const n_items, FILModelHandle *out)
+__host__ int FILLoadModel(
+    int model_type,
+    const char *filename,
+    int algo,
+    bool classification,
+    float threshold,
+    int storage_type,
+    int blocks_per_sm,
+    int threads_per_tree,
+    int n_items,
+    FILModelHandle *out)
 {
 
   cuml4c::TreeliteHandle tl_handle;
@@ -150,21 +155,28 @@ __host__ int FILLoadModel(int const model_type, const char *filename,
   return 0;
 }
 
-__host__ int FILModelFree(FILModelHandle handle)
+__host__ int FILModelFree(
+    FILModelHandle handle)
 {
   delete static_cast<FILModel *>(handle);
   return 0;
 }
 
-__host__ int FILGetNumClasses(FILModelHandle model, size_t *out)
+__host__ int FILGetNumClasses(
+    FILModelHandle model,
+    size_t *out)
 {
   auto const model_xptr = static_cast<FILModel const *>(model);
   *out = model_xptr->numClasses_;
   return 0;
 }
 
-__host__ int FILPredict(FILModelHandle model, const float *x, size_t num_row,
-                        bool const output_class_probabilities, float *out)
+__host__ int FILPredict(
+    FILModelHandle model,
+    const float *x,
+    size_t num_row,
+    bool output_class_probabilities,
+    float *out)
 {
 
   auto const fil_model = static_cast<FILModel const *>(model);
@@ -183,13 +195,16 @@ __host__ int FILPredict(FILModelHandle model, const float *x, size_t num_row,
   const auto feature_size = fil_model->numFeatures_ * num_row;
   // ensemble input data
   thrust::device_vector<float> d_x(feature_size);
+
+  // TODO: async copy
   thrust::copy(
       x,
       x + feature_size,
       d_x.begin());
 
   // ensemble output
-  thrust::device_vector<float> d_preds(output_size);
+  thrust::device_vector<float>
+      d_preds(output_size);
 
   ML::fil::predict(/*h=*/handle,
                    /*f=*/fil_model->forest_.get(),
@@ -198,6 +213,7 @@ __host__ int FILPredict(FILModelHandle model, const float *x, size_t num_row,
                    /*num_rows=*/num_row,
                    /*predict_proba=*/output_class_probabilities);
 
+  // TODO: async copy
   thrust::copy(
       d_preds.begin(),
       d_preds.end(),

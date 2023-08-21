@@ -29,7 +29,14 @@ if(CUDA_FOUND)
 
     find_package(cuml REQUIRED)
 
-    target_link_libraries(objcuml4c PRIVATE ${CUDA_LIBRARIES} Thrust rmm::rmm treelite cuml cuml++)
+    target_link_libraries(objcuml4c PRIVATE 
+        ${CUDA_LIBRARIES} 
+        Thrust 
+        rmm::rmm 
+        treelite 
+        cuml 
+        cuml++ 
+        cumlprims)
 
     target_include_directories(objcuml4c PUBLIC 
         ${PROJECT_SOURCE_DIR}/include
@@ -37,9 +44,11 @@ if(CUDA_FOUND)
     )
 
     target_sources(objcuml4c PRIVATE
+        agglomerative_clustering.cu
         async_utils.cuh
         cuda_utils.cu
         cuda_utils.h
+        dbscan.cu
         device_allocator.cu
         device_allocator.h
         fil_utils.cu
@@ -47,6 +56,7 @@ if(CUDA_FOUND)
         fil.cu
         handle_utils.cu
         handle_utils.h
+        kmeans.cu
         preprocessor.h
         stream_allocator.cu
         stream_allocator.h
@@ -54,6 +64,4 @@ if(CUDA_FOUND)
         unique_marker.cuh
     )
 
-
-    
 endif()

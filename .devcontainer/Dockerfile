@@ -21,7 +21,6 @@ RUN apt-get update \
     zlib1g \
     cython \
     cuda-toolkit-11-2 \
-    libthrust-dev \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -60,7 +59,7 @@ RUN git clone https://github.com/dmlc/treelite.git -b 2.0.0 \
     && cd ../.. \
     && rm -r treelite
 
-RUN git clone --recursive https://github.com/NVIDIA/thrust.git -b 2.1.0 \
+RUN git clone --recursive https://github.com/NVIDIA/thrust.git -b 1.12.0 \
     && cd thrust \
     && mkdir build \
     && cd build \

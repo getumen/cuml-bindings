@@ -10,9 +10,9 @@ namespace cuml4c
         {
             return forest_uptr(forest, [&handle](auto *const f)
                                {
-    if (f != nullptr) {
-      ML::fil::free(handle, f);
-    } });
+                                if (f != nullptr) {
+                                    ML::fil::free(handle, f);
+                                    } });
         }
 
         __host__ forest_uptr make_forest(raft::handle_t const &handle,
