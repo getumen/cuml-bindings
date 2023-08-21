@@ -1,0 +1,1 @@
+/usr/bin/g++ -fPIC -shared -Wl,-soname,libcuml4c.so -o libcuml4c.so @CMakeFiles/cuml4c.dir/objects1.rsp @CMakeFiles/cuml4c.dir/linkLibs.rsp -L"/usr/local/cuda/targets/x86_64-linux/lib/stubs" -L"/usr/local/cuda/targets/x86_64-linux/lib"

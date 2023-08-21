@@ -101,4 +101,6 @@ dkms.conf
 .history
 .ionide
 
+build/
+
 # End of https://www.toptal.com/developers/gitignore/api/c,c++,visualstudiocode,cuda
