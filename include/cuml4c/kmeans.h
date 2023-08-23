@@ -4,6 +4,7 @@
 #else
 #define EXTERN_C
 #include <stdbool.h>
+#include <stdio.h>
 #endif
 
 EXTERN_C int KmeansFit(
@@ -15,6 +16,7 @@ EXTERN_C int KmeansFit(
     int max_iters,
     double tol,
     int init_method,
+    int metric,
     int seed,
     int verbosity,
     int *labels,

@@ -27,6 +27,7 @@ func Kmeans(
 	maxIter int,
 	tol float64,
 	init KmeansInit,
+	metric Metric,
 	seed int,
 	verbosity int,
 ) (
@@ -50,6 +51,7 @@ func Kmeans(
 			(C.int)(maxIter),
 			(C.double)(tol),
 			C.int(init),
+			C.int(metric),
 			(C.int)(seed),
 			(C.int)(verbosity),
 			(*C.int)(&labels[0]),
@@ -67,6 +69,7 @@ func Kmeans(
 			(C.int)(maxIter),
 			(C.double)(tol),
 			C.int(init),
+			C.int(metric),
 			(C.int)(seed),
 			(C.int)(verbosity),
 			(*C.int)(&labels[0]),

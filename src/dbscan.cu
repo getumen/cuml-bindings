@@ -17,6 +17,7 @@ __host__ int DbscanFit(
     size_t num_col,
     int min_pts,
     double eps,
+    int metric,
     size_t max_bytes_per_batch,
     int verbosity,
     int *out)
@@ -45,7 +46,7 @@ __host__ int DbscanFit(
                     /*n_cols=*/num_col,
                     eps,
                     min_pts,
-                    /*metric=*/raft::distance::L2SqrtUnexpanded,
+                    /*metric=*/static_cast<raft::distance::DistanceType>(metric),
                     /*labels=*/d_labels.data().get(),
                     /*core_sample_indices=*/nullptr,
                     max_bytes_per_batch,

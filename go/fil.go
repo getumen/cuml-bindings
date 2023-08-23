@@ -176,7 +176,7 @@ func (m *FILModel) PredictSingleClassScore(
 
 // Close frees the model.
 func (m *FILModel) Close() error {
-	ret := C.FILModelFree(m.pointer)
+	ret := C.FILFreeModel(m.pointer)
 	if ret != 0 {
 		return ErrFILModelFree
 	}

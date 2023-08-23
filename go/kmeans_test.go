@@ -24,6 +24,7 @@ func TestKmeans(t *testing.T) {
 		10,
 		0.0,
 		cuml4go.KMeansPlusPlus,
+		cuml4go.L2Expanded,
 		42,
 		0,
 	)

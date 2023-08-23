@@ -106,5 +106,10 @@
     "[python]": {
         "editor.defaultFormatter": "ms-python.black-formatter"
     },
-    "python.formatting.provider": "none"
+    "python.formatting.provider": "none",
+    "rust-analyzer.linkedProjects": [
+        "./rust/Cargo.toml",
+        "./rust/Cargo.toml",
+        "./rust/Cargo.toml"
+    ]
 }

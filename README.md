@@ -1,4 +1,4 @@
-# cuml4go: [cuml](https://github.com/rapidsai/cuml) binding in Go
+# cuml: [cuml](https://github.com/rapidsai/cuml) binding in Go and Rust
 
 This binding currently works for cuml 21.08.00.
 

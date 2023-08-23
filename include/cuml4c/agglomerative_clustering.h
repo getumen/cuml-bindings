@@ -4,6 +4,7 @@
 #else
 #define EXTERN_C
 #include <stdbool.h>
+#include <stdio.h>
 #endif
 
 EXTERN_C int AgglomerativeClusteringFit(

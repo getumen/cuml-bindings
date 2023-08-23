@@ -4,6 +4,7 @@
 #else
 #define EXTERN_C
 #include <stdbool.h>
+#include <stdio.h>
 #endif
 
 EXTERN_C int DbscanFit(
@@ -12,6 +13,7 @@ EXTERN_C int DbscanFit(
     size_t num_col,
     int min_pts,
     double eps,
+    int metric,
     size_t max_bytes_per_batch,
     int verbosity,
     int *out);
