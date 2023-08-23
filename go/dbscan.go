@@ -16,6 +16,7 @@ func DBScan(
 	numCol int,
 	minPts int,
 	eps float64,
+	metric Metric,
 	maxBytesPerBatch int,
 	verbosity int,
 ) ([]int32, error) {
@@ -28,6 +29,7 @@ func DBScan(
 		(C.size_t)(numCol),
 		(C.int)(minPts),
 		(C.double)(eps),
+		(C.int)(metric),
 		(C.size_t)(maxBytesPerBatch),
 		(C.int)(verbosity),
 		(*C.int)(&result[0]),

@@ -155,7 +155,7 @@ __host__ int FILLoadModel(
   return 0;
 }
 
-__host__ int FILModelFree(
+__host__ int FILFreeModel(
     FILModelHandle handle)
 {
   delete static_cast<FILModel *>(handle);

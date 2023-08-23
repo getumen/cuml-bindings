@@ -20,6 +20,7 @@ __host__ int KmeansFit(
     int max_iters,
     double tol,
     int init_method,
+    int metric,
     int seed,
     int verbosity,
     int *labels,
@@ -40,6 +41,7 @@ __host__ int KmeansFit(
     params.init = static_cast<ML::kmeans::KMeansParams::InitMethod>(init_method);
     params.seed = seed;
     params.verbosity = verbosity;
+    params.metric = metric;
 
     auto stream_view = cuml4c::stream_allocator::getOrCreateStream();
     raft::handle_t handle;

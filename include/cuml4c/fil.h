@@ -4,6 +4,7 @@
 #else
 #define EXTERN_C
 #include <stdbool.h>
+#include <stdio.h>
 #endif
 
 typedef void *FILModelHandle;
@@ -20,7 +21,7 @@ EXTERN_C int FILLoadModel(
     int n_items,
     FILModelHandle *out);
 
-EXTERN_C int FILModelFree(
+EXTERN_C int FILFreeModel(
     FILModelHandle handle);
 
 EXTERN_C int FILGetNumClasses(
