@@ -1,5 +1,6 @@
 use crate::{errors::CumlError, metric::Metric, sys::clustering};
 
+#[derive(Debug, Clone)]
 pub struct AgglomerativeClusteringResult {
     num_cluster: i32,
     labels: Vec<i32>,
@@ -68,12 +69,14 @@ pub fn dbscan<'a>(
     )
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
 pub enum KmeansInitMethod {
     KMeansPlusPlus = 0,
     Random = 1,
     Array = 2,
 }
 
+#[derive(Debug, Clone)]
 pub struct KmeansResult {
     labels: Vec<i32>,
     centroids: Vec<f32>,

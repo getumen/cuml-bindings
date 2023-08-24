@@ -47,7 +47,7 @@ booster = xgb.train(
 booster.save_model("xgboost.model")
 
 test_x.to_csv("feature.csv", index=False, header=False, float_format="%.8f")
-test_y.to_csv("label.csv", index=False, float_format="%.8f")
+test_y.to_csv("label.csv", index=False,  header=False, float_format="%.8f")
 
 dvalid = xgb.DMatrix(test_x)
 

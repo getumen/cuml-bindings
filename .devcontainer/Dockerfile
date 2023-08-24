@@ -21,6 +21,7 @@ RUN apt-get update \
     zlib1g \
     cython \
     cuda-toolkit-11-2 \
+    clang \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 

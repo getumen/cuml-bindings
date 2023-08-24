@@ -13,8 +13,8 @@
 
 __host__ int KmeansFit(
     const float *x,
-    int num_row,
-    int num_col,
+    size_t num_row,
+    size_t num_col,
     const float *sample_weight,
     int k,
     int max_iters,

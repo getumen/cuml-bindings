@@ -1206,8 +1206,8 @@ extern "C" {
 extern "C" {
     pub fn KmeansFit(
         x: *const f32,
-        num_row: ::std::os::raw::c_int,
-        num_col: ::std::os::raw::c_int,
+        num_row: usize,
+        num_col: usize,
         sample_weight: *const f32,
         k: ::std::os::raw::c_int,
         max_iters: ::std::os::raw::c_int,
@@ -1220,6 +1220,150 @@ extern "C" {
         centroids: *mut f32,
         inertia: *mut f32,
         n_iter: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn OlsFit(
+        x: *const f32,
+        num_row: usize,
+        num_col: usize,
+        labels: *const f32,
+        fit_intercept: bool,
+        normalize: bool,
+        algo: ::std::os::raw::c_int,
+        coef: *mut f32,
+        intercept: *mut f32,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn RidgeFit(
+        x: *const f32,
+        num_row: usize,
+        num_col: usize,
+        labels: *const f32,
+        alpha: *const f32,
+        n_alpha: usize,
+        fit_intercept: bool,
+        normalize: bool,
+        algo: ::std::os::raw::c_int,
+        coef: *mut f32,
+        intercept: *mut f32,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn GemmPredict(
+        x: *const f32,
+        num_row: usize,
+        num_col: usize,
+        coef: *const f32,
+        intercept: f32,
+        preds: *mut f32,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn QnFit(
+        x: *const f32,
+        num_row: usize,
+        num_col: usize,
+        X_col_major: bool,
+        labels: *const f32,
+        num_class: usize,
+        loss_type: ::std::os::raw::c_int,
+        sample_weight: *const f32,
+        fit_intercept: bool,
+        l1: f32,
+        l2: f32,
+        max_iter: ::std::os::raw::c_int,
+        grad_tol: f32,
+        change_tol: f32,
+        linesearch_max_iter: ::std::os::raw::c_int,
+        lbfgs_memory: ::std::os::raw::c_int,
+        verbosity: ::std::os::raw::c_int,
+        w0: *mut f32,
+        f: *mut f32,
+        num_iters: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn QnFitSparse(
+        values: *const f32,
+        indices: *const ::std::os::raw::c_int,
+        header: *const ::std::os::raw::c_int,
+        num_row: usize,
+        num_col: usize,
+        num_non_zero: usize,
+        labels: *const f32,
+        num_class: usize,
+        loss_type: ::std::os::raw::c_int,
+        sample_weight: *const f32,
+        fit_intercept: bool,
+        l1: f32,
+        l2: f32,
+        max_iter: ::std::os::raw::c_int,
+        grad_tol: f32,
+        change_tol: f32,
+        linesearch_max_iter: ::std::os::raw::c_int,
+        lbfgs_memory: ::std::os::raw::c_int,
+        verbosity: ::std::os::raw::c_int,
+        w0: *mut f32,
+        f: *mut f32,
+        num_iters: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn QnDecisionFunction(
+        x: *const f32,
+        X_col_major: bool,
+        num_row: usize,
+        num_col: usize,
+        num_class: usize,
+        fit_intercept: bool,
+        params: *const f32,
+        loss_type: ::std::os::raw::c_int,
+        preds: *mut f32,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn QnDecisionFunctionSparse(
+        values: *const f32,
+        indices: *const ::std::os::raw::c_int,
+        header: *const ::std::os::raw::c_int,
+        num_row: usize,
+        num_col: usize,
+        num_non_zero: usize,
+        num_class: usize,
+        fit_intercept: bool,
+        params: *const f32,
+        loss_type: ::std::os::raw::c_int,
+        preds: *mut f32,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn QnPredict(
+        x: *const f32,
+        X_col_major: bool,
+        num_row: usize,
+        num_col: usize,
+        num_class: usize,
+        fit_intercept: bool,
+        params: *const f32,
+        loss_type: ::std::os::raw::c_int,
+        preds: *mut f32,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn QnPredictSparse(
+        values: *const f32,
+        indices: *const ::std::os::raw::c_int,
+        header: *const ::std::os::raw::c_int,
+        num_row: usize,
+        num_col: usize,
+        num_non_zero: usize,
+        num_class: usize,
+        fit_intercept: bool,
+        params: *const f32,
+        loss_type: ::std::os::raw::c_int,
+        preds: *mut f32,
     ) -> ::std::os::raw::c_int;
 }
 pub type __builtin_va_list = [__va_list_tag; 1usize];

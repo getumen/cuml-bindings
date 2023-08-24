@@ -95,8 +95,8 @@ pub fn kmeans<'a, 'b>(
     let result = unsafe {
         KmeansFit(
             data.as_ptr() as *const f32,
-            num_row,
-            num_col,
+            num_row as usize,
+            num_col as usize,
             sample_weight.map_or(std::ptr::null(), |x| x.as_ptr()),
             k,
             max_iter,

@@ -44,8 +44,8 @@ func Kmeans(
 	if sampleWeight == nil {
 		ret = C.KmeansFit(
 			(*C.float)(&x[0]),
-			(C.int)(numRow),
-			(C.int)(numCol),
+			(C.ulong)(numRow),
+			(C.ulong)(numCol),
 			(*C.float)(nil),
 			(C.int)(k),
 			(C.int)(maxIter),
@@ -62,8 +62,8 @@ func Kmeans(
 	} else {
 		ret = C.KmeansFit(
 			(*C.float)(&x[0]),
-			(C.int)(numRow),
-			(C.int)(numCol),
+			(C.ulong)(numRow),
+			(C.ulong)(numCol),
 			(*C.float)(&sampleWeight[0]),
 			(C.int)(k),
 			(C.int)(maxIter),

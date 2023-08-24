@@ -7,6 +7,7 @@ fn main() {
         .header("../include/cuml4c/dbscan.h")
         .header("../include/cuml4c/fil.h")
         .header("../include/cuml4c/kmeans.h")
+        .header("../include/cuml4c/linear_regression.h")
         .parse_callbacks(Box::new(bindgen::CargoCallbacks))
         .generate()
         .expect("unable to generate bindings");

@@ -57,6 +57,7 @@ if(CUDA_FOUND)
         handle_utils.cu
         handle_utils.h
         kmeans.cu
+        linear_regression.cu
         preprocessor.h
         stream_allocator.cu
         stream_allocator.h

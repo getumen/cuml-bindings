@@ -7,7 +7,7 @@ use crate::{
         fil::{fil_free_model, fil_get_num_class, fil_load_model, fil_predict},
     },
 };
-
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
 pub enum ModelType {
     // XGBoost xgboost model (binary model file)
     XGBoost = 0,
@@ -17,6 +17,7 @@ pub enum ModelType {
     LightGBM = 2,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
 pub enum Algo {
     // AlgoAuto choose the algorithm automatically; currently chooses NAIVE for sparse forests
     //  and BatchTreeReorg for dense ones
@@ -33,6 +34,7 @@ pub enum Algo {
     BatchTreeReorg = 3,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
 pub enum StorageType {
     // Auto decide automatically; currently always builds dense forests
     Auto = 0,
@@ -48,6 +50,7 @@ pub enum StorageType {
     Sparse8 = 3,
 }
 
+#[derive(Debug, Clone)]
 pub struct Model {
     model: FILModelHandle,
     num_class: usize,
