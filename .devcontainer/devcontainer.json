@@ -24,10 +24,10 @@
     "customizations": {
         "vscode": {
             "extensions": [
-				"ms-vscode.cpptools-extension-pack",
-				"ms-azuretools.vscode-docker",
-				"rust-lang.rust-analyzer"
-			]
+                "ms-vscode.cpptools-extension-pack",
+                "ms-azuretools.vscode-docker",
+                "rust-lang.rust-analyzer"
+            ]
         }
     },
     "remoteEnv": {
