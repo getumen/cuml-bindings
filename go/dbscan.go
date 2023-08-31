@@ -40,11 +40,11 @@ func (d *DBScan) Fit(
 	numCol int,
 ) ([]int32, error) {
 
-	dX, err := rawcuml4go.NewDeviceVectorFloat(x)
-
+	dX, err := rawcuml4go.NewDeviceVectorFloatFromData(x)
 	if err != nil {
 		return nil, err
 	}
+	defer dX.Close()
 
 	dLabels, err := rawcuml4go.DBScan(
 		dX,
@@ -55,6 +55,7 @@ func (d *DBScan) Fit(
 		int(d.metric),
 		d.maxBytesPerBatch,
 		int(d.verbosity),
+		nil,
 	)
 	if err != nil {
 		return nil, err

@@ -7,10 +7,11 @@ import "C"
 import "errors"
 
 var (
-	ErrRawDeviceVector   = errors.New("raw api: fail to copy device to host")
-	ErrRawHostVector     = errors.New("raw api: fail to copy host to device")
-	ErrCloseDeviceVector = errors.New("raw api: fail to close device vector")
-	ErrGetSize           = errors.New("raw api: fail to get size")
+	ErrRawCreateDeviceVector = errors.New("raw api: fail to create device vector")
+	ErrRawDeviceVector       = errors.New("raw api: fail to copy device to host")
+	ErrRawHostVector         = errors.New("raw api: fail to copy host to device")
+	ErrRawCloseDeviceVector  = errors.New("raw api: fail to close device vector")
+	ErrRawGetSize            = errors.New("raw api: fail to get size")
 )
 
 type DeviceVectorFloat struct {
@@ -20,14 +21,21 @@ type DeviceVectorInt struct {
 	pointer C.DeviceVectorHandleInt
 }
 
-func NewDeviceVectorFloatEmpty() *DeviceVectorFloat {
+func NewDeviceVectorFloat(size int) (*DeviceVectorFloat, error) {
 	var pointer C.DeviceVectorHandleFloat
+	ret := C.DeviceVectorFloatCreate(
+		C.ulong(size),
+		&pointer,
+	)
+	if ret != 0 {
+		return nil, ErrRawCreateDeviceVector
+	}
 	return &DeviceVectorFloat{
 		pointer: pointer,
-	}
+	}, nil
 }
 
-func NewDeviceVectorFloat(
+func NewDeviceVectorFloatFromData(
 	data []float32,
 ) (*DeviceVectorFloat, error) {
 
@@ -53,7 +61,7 @@ func (d *DeviceVectorFloat) Close() error {
 	)
 
 	if ret != 0 {
-		return ErrCloseDeviceVector
+		return ErrRawCloseDeviceVector
 	}
 
 	return nil
@@ -67,7 +75,7 @@ func (d *DeviceVectorFloat) GetSize() (int, error) {
 	)
 
 	if ret != 0 {
-		return 0, ErrGetSize
+		return 0, ErrRawGetSize
 	}
 
 	return int(size), nil
@@ -104,14 +112,21 @@ func (d *DeviceVectorFloat) ToHostInPlace(out []float32) error {
 	return nil
 }
 
-func NewDeviceVectorIntEmpty() *DeviceVectorInt {
+func NewDeviceVectorInt(size int) (*DeviceVectorInt, error) {
 	var pointer C.DeviceVectorHandleInt
+	ret := C.DeviceVectorIntCreate(
+		C.ulong(size),
+		&pointer,
+	)
+	if ret != 0 {
+		return nil, ErrRawCreateDeviceVector
+	}
 	return &DeviceVectorInt{
 		pointer: pointer,
-	}
+	}, nil
 }
 
-func NewDeviceVectorInt(
+func NewDeviceVectorIntFromData(
 	data []int32,
 ) (*DeviceVectorInt, error) {
 
@@ -137,7 +152,7 @@ func (d *DeviceVectorInt) Close() error {
 	)
 
 	if ret != 0 {
-		return ErrCloseDeviceVector
+		return ErrRawCloseDeviceVector
 	}
 
 	return nil
@@ -151,7 +166,7 @@ func (d *DeviceVectorInt) GetSize() (int, error) {
 	)
 
 	if ret != 0 {
-		return 0, ErrGetSize
+		return 0, ErrRawGetSize
 	}
 
 	return int(size), nil

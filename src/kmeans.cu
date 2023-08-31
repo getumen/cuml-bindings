@@ -24,13 +24,16 @@ __host__ int KmeansFit(
     int metric,
     int seed,
     int verbosity,
-    DeviceVectorHandleInt *device_labels,
-    DeviceVectorHandleFloat *device_centroids,
+    DeviceVectorHandleInt device_labels,
+    DeviceVectorHandleFloat device_centroids,
     float *inertia,
     int *n_iter)
 {
 
     auto d_x = static_cast<cuml4c::DeviceVector<float> *>(device_x);
+    auto d_sample_weight = static_cast<cuml4c::DeviceVector<float> *>(device_sample_weight);
+    auto d_labels = static_cast<cuml4c::DeviceVector<int> *>(device_labels);
+    auto d_centroids = static_cast<cuml4c::DeviceVector<float> *>(device_centroids);
 
     ML::kmeans::KMeansParams params;
     params.n_clusters = k;
@@ -50,11 +53,6 @@ __host__ int KmeansFit(
     raft::handle_t handle;
     cuml4c::handle_utils::initializeHandle(handle, stream_view.value());
 
-    auto const n_centroid_values = params.n_clusters * num_col;
-    auto d_centroids = std::make_unique<thrust::device_vector<float>>(n_centroid_values);
-
-    auto d_labels = std::make_unique<thrust::device_vector<int>>(num_row);
-
     if (device_sample_weight == nullptr)
     {
         ML::kmeans::fit_predict(
@@ -64,14 +62,13 @@ __host__ int KmeansFit(
             num_row,
             num_col,
             nullptr,
-            d_centroids->data().get(),
-            d_labels->data().get(),
+            d_centroids->vector->data().get(),
+            d_labels->vector->data().get(),
             *inertia,
             *n_iter);
     }
     else
     {
-        auto d_sample_weight = static_cast<cuml4c::DeviceVector<float> *>(device_sample_weight);
 
         ML::kmeans::fit_predict(
             handle,
@@ -80,17 +77,11 @@ __host__ int KmeansFit(
             num_row,
             num_col,
             d_sample_weight->vector->data().get(),
-            d_centroids->data().get(),
-            d_labels->data().get(),
+            d_centroids->vector->data().get(),
+            d_labels->vector->data().get(),
             *inertia,
             *n_iter);
     }
-
-    auto p_labels = std::make_unique<cuml4c::DeviceVector<int>>(std::move(d_labels));
-    *device_labels = static_cast<DeviceVectorHandleInt>(p_labels.release());
-
-    auto p_centroids = std::make_unique<cuml4c::DeviceVector<float>>(std::move(d_centroids));
-    *device_centroids = static_cast<DeviceVectorHandleFloat>(p_centroids.release());
 
     return 0;
 }

@@ -18,4 +18,4 @@ EXTERN_C int DbscanFit(
     int metric,
     size_t max_bytes_per_batch,
     int verbosity,
-    DeviceVectorHandleInt *device_labels);
+    DeviceVectorHandleInt device_labels);

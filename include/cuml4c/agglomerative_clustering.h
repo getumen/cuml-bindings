@@ -18,5 +18,5 @@ EXTERN_C int AgglomerativeClusteringFit(
     int n_neighbors,
     int init_n_clusters,
     int *n_clusters,
-    DeviceVectorHandleInt *device_labels,
-    DeviceVectorHandleInt *device_children);
+    DeviceVectorHandleInt device_labels,
+    DeviceVectorHandleInt device_children);

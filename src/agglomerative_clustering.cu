@@ -20,13 +20,13 @@ __host__ int AgglomerativeClusteringFit(
     int n_neighbors,
     int init_n_clusters,
     int *n_clusters,
-    DeviceVectorHandleInt *device_labels,
-    DeviceVectorHandleInt *device_children)
+    DeviceVectorHandleInt device_labels,
+    DeviceVectorHandleInt device_children)
 {
     auto d_x = static_cast<cuml4c::DeviceVector<float> *>(device_x);
 
-    auto d_labels = std::make_unique<thrust::device_vector<int>>(num_row);
-    auto d_children = std::make_unique<thrust::device_vector<int>>((num_row - 1) * 2);
+    auto d_labels = static_cast<cuml4c::DeviceVector<int> *>(device_labels);
+    auto d_children = static_cast<cuml4c::DeviceVector<int> *>(device_children);
 
     auto stream_view = cuml4c::stream_allocator::getOrCreateStream();
     raft::handle_t handle;
@@ -34,8 +34,8 @@ __host__ int AgglomerativeClusteringFit(
 
     // single-linkage hierarchical clustering output
     auto out = std::make_unique<raft::hierarchy::linkage_output<int, float>>();
-    out->labels = d_labels->data().get();
-    out->children = d_children->data().get();
+    out->labels = d_labels->vector->data().get();
+    out->children = d_children->vector->data().get();
 
     if (pairwise_conn)
     {
@@ -60,12 +60,6 @@ __host__ int AgglomerativeClusteringFit(
             /*c=*/n_neighbors,
             init_n_clusters);
     }
-
-    auto p_labels = std::make_unique<cuml4c::DeviceVector<int>>(std::move(d_labels));
-    *device_labels = static_cast<DeviceVectorHandleInt>(p_labels.release());
-    auto p_children = std::make_unique<cuml4c::DeviceVector<int>>(std::move(d_children));
-    *device_children = static_cast<DeviceVectorHandleInt>(p_children.release());
-
     *n_clusters = out->n_clusters;
 
     return 0;

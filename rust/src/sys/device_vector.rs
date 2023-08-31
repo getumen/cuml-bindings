@@ -4,9 +4,10 @@ use crate::errors::CumlError;
 use anyhow::anyhow;
 
 use super::bindings::{
-    DeviceVectorFloatFree, DeviceVectorFloatGetSize, DeviceVectorHandleFloat,
-    DeviceVectorHandleInt, DeviceVectorToHostVectorFloat, DeviceVectorToHostVectorInt,
-    HostVectorToDeviceVectorFloat, HostVectorToDeviceVectorInt,
+    DeviceVectorFloatCreate, DeviceVectorFloatFree, DeviceVectorFloatGetSize,
+    DeviceVectorHandleFloat, DeviceVectorHandleInt, DeviceVectorIntCreate,
+    DeviceVectorToHostVectorFloat, DeviceVectorToHostVectorInt, HostVectorToDeviceVectorFloat,
+    HostVectorToDeviceVectorInt,
 };
 
 pub struct DeviceVectorFloat {
@@ -14,11 +15,16 @@ pub struct DeviceVectorFloat {
 }
 
 impl DeviceVectorFloat {
-    pub fn empty() -> Self {
-        Self { handle: null_mut() }
+    pub fn new(size: usize) -> Result<Self, CumlError> {
+        let mut handle = null_mut();
+        let result: i32 = unsafe { DeviceVectorFloatCreate(size, &mut handle) };
+        if result != 0 {
+            Err(anyhow!("fail to create device_vector<float>"))?
+        }
+        Ok(Self { handle })
     }
 
-    pub fn new<'a>(data: &'a [f32]) -> Result<Self, CumlError> {
+    pub fn from_slice<'a>(data: &'a [f32]) -> Result<Self, CumlError> {
         let mut handle = null_mut();
         let result: i32 = unsafe {
             HostVectorToDeviceVectorFloat(data.as_ptr() as *const f32, data.len(), &mut handle)
@@ -76,11 +82,16 @@ pub struct DeviceVectorInt {
 }
 
 impl DeviceVectorInt {
-    pub fn empty() -> Self {
-        Self { handle: null_mut() }
+    pub fn new(size: usize) -> Result<Self, CumlError> {
+        let mut handle = null_mut();
+        let result: i32 = unsafe { DeviceVectorIntCreate(size, &mut handle) };
+        if result != 0 {
+            Err(anyhow!("fail to create device_vector<int>"))?
+        }
+        Ok(Self { handle })
     }
 
-    pub fn new<'a>(data: &'a [i32]) -> Result<Self, CumlError> {
+    pub fn from_slice<'a>(data: &'a [i32]) -> Result<Self, CumlError> {
         let mut handle = null_mut();
         let result: i32 = unsafe {
             HostVectorToDeviceVectorInt(data.as_ptr() as *const i32, data.len(), &mut handle)

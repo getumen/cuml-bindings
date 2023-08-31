@@ -28,7 +28,7 @@ func TestFIL(t *testing.T) {
 	features := csvToFloat32Array(t, "../testdata/feature.csv")
 	expectedScores := csvToFloat32Array(t, "../testdata/score-xgboost.csv")
 
-	dFeatire, err := rawcuml4go.NewDeviceVectorFloat(features)
+	dFeatire, err := rawcuml4go.NewDeviceVectorFloatFromData(features)
 	require.NoError(t, err)
 	defer dFeatire.Close()
 
@@ -37,7 +37,7 @@ func TestFIL(t *testing.T) {
 
 	require.Equal(t, len(features), size)
 
-	actual, err := target.Predict(dFeatire, nRow, true)
+	actual, err := target.Predict(dFeatire, nRow, true, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
