@@ -4,6 +4,19 @@
 
 #include <thrust/device_vector.h>
 
+__host__ int DeviceVectorFloatCreate(
+    size_t size,
+    DeviceVectorHandleFloat *out)
+{
+    auto d = std::make_unique<thrust::device_vector<float>>(size);
+
+    auto p = std::make_unique<cuml4c::DeviceVector<float>>(std::move(d));
+
+    *out = static_cast<DeviceVectorHandleFloat>(p.release());
+
+    return 0;
+}
+
 __host__ int DeviceVectorToHostVectorFloat(
     DeviceVectorHandleFloat device,
     float *out)
@@ -46,6 +59,19 @@ __host__ int DeviceVectorFloatFree(
     DeviceVectorHandleFloat device)
 {
     delete static_cast<cuml4c::DeviceVector<int> *>(device);
+
+    return 0;
+}
+
+__host__ int DeviceVectorIntCreate(
+    size_t size,
+    DeviceVectorHandleInt *out)
+{
+    auto d = std::make_unique<thrust::device_vector<int>>(size);
+
+    auto p = std::make_unique<cuml4c::DeviceVector<int>>(std::move(d));
+
+    *out = static_cast<DeviceVectorHandleInt>(p.release());
 
     return 0;
 }

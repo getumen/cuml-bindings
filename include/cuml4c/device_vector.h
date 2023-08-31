@@ -10,6 +10,10 @@
 typedef void *DeviceVectorHandleFloat;
 typedef void *DeviceVectorHandleInt;
 
+EXTERN_C int DeviceVectorFloatCreate(
+    size_t size,
+    DeviceVectorHandleFloat *out);
+
 EXTERN_C int DeviceVectorToHostVectorFloat(
     DeviceVectorHandleFloat device,
     float *out);
@@ -25,6 +29,10 @@ EXTERN_C int DeviceVectorFloatGetSize(
 
 EXTERN_C int DeviceVectorFloatFree(
     DeviceVectorHandleFloat device);
+
+EXTERN_C int DeviceVectorIntCreate(
+    size_t size,
+    DeviceVectorHandleInt *out);
 
 EXTERN_C int DeviceVectorToHostVectorInt(
     DeviceVectorHandleInt device,

@@ -10,6 +10,7 @@ var (
 	ErrDBScan = errors.New("raw api: fail to dbscan")
 )
 
+// DBScan is raw api for dbscan
 func DBScan(
 	x *DeviceVectorFloat,
 	numRow int,
@@ -19,9 +20,16 @@ func DBScan(
 	metric int,
 	maxBytesPerBatch int,
 	verbosity int,
+	labels *DeviceVectorInt,
 ) (*DeviceVectorInt, error) {
+	var err error
 
-	result := NewDeviceVectorIntEmpty()
+	if labels == nil {
+		labels, err = NewDeviceVectorInt(numRow)
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	ret := C.DbscanFit(
 		x.pointer,
@@ -32,12 +40,12 @@ func DBScan(
 		(C.int)(metric),
 		(C.size_t)(maxBytesPerBatch),
 		(C.int)(verbosity),
-		&result.pointer,
+		labels.pointer,
 	)
 
 	if ret != 0 {
 		return nil, ErrDBScan
 	}
 
-	return result, nil
+	return labels, nil
 }

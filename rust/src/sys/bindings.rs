@@ -1149,6 +1149,12 @@ extern "C" {
 pub type DeviceVectorHandleFloat = *mut ::std::os::raw::c_void;
 pub type DeviceVectorHandleInt = *mut ::std::os::raw::c_void;
 extern "C" {
+    pub fn DeviceVectorFloatCreate(
+        size: usize,
+        out: *mut DeviceVectorHandleFloat,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
     pub fn DeviceVectorToHostVectorFloat(
         device: DeviceVectorHandleFloat,
         out: *mut f32,
@@ -1169,6 +1175,12 @@ extern "C" {
 }
 extern "C" {
     pub fn DeviceVectorFloatFree(device: DeviceVectorHandleFloat) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn DeviceVectorIntCreate(
+        size: usize,
+        out: *mut DeviceVectorHandleInt,
+    ) -> ::std::os::raw::c_int;
 }
 extern "C" {
     pub fn DeviceVectorToHostVectorInt(
@@ -1202,8 +1214,8 @@ extern "C" {
         n_neighbors: ::std::os::raw::c_int,
         init_n_clusters: ::std::os::raw::c_int,
         n_clusters: *mut ::std::os::raw::c_int,
-        device_labels: *mut DeviceVectorHandleInt,
-        device_children: *mut DeviceVectorHandleInt,
+        device_labels: DeviceVectorHandleInt,
+        device_children: DeviceVectorHandleInt,
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
@@ -1216,7 +1228,7 @@ extern "C" {
         metric: ::std::os::raw::c_int,
         max_bytes_per_batch: usize,
         verbosity: ::std::os::raw::c_int,
-        device_labels: *mut DeviceVectorHandleInt,
+        device_labels: DeviceVectorHandleInt,
     ) -> ::std::os::raw::c_int;
 }
 pub type FILModelHandle = *mut ::std::os::raw::c_void;
@@ -1246,7 +1258,7 @@ extern "C" {
         device_x: DeviceVectorHandleFloat,
         num_row: usize,
         output_class_probabilities: bool,
-        device_preds: *mut DeviceVectorHandleFloat,
+        device_preds: DeviceVectorHandleFloat,
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
@@ -1262,8 +1274,8 @@ extern "C" {
         metric: ::std::os::raw::c_int,
         seed: ::std::os::raw::c_int,
         verbosity: ::std::os::raw::c_int,
-        device_labels: *mut DeviceVectorHandleInt,
-        device_centroids: *mut DeviceVectorHandleFloat,
+        device_labels: DeviceVectorHandleInt,
+        device_centroids: DeviceVectorHandleFloat,
         inertia: *mut f32,
         n_iter: *mut ::std::os::raw::c_int,
     ) -> ::std::os::raw::c_int;

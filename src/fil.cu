@@ -176,7 +176,7 @@ __host__ int FILPredict(
     DeviceVectorHandleFloat device_x,
     size_t num_row,
     bool output_class_probabilities,
-    DeviceVectorHandleFloat *device_preds)
+    DeviceVectorHandleFloat device_preds)
 {
 
   auto const fil_model = static_cast<FILModel const *>(model);
@@ -189,22 +189,14 @@ __host__ int FILPredict(
   auto &handle = *(fil_model->handle_);
 
   auto d_x = static_cast<cuml4c::DeviceVector<float> *>(device_x);
-
-  auto output_size = output_class_probabilities
-                         ? fil_model->numClasses_ * num_row
-                         : num_row;
-  // ensemble output
-  auto d_preds = std::make_unique<thrust::device_vector<float>>(output_size);
+  auto d_preds = static_cast<cuml4c::DeviceVector<float> *>(device_preds);
 
   ML::fil::predict(/*h=*/handle,
                    /*f=*/fil_model->forest_.get(),
-                   /*preds=*/d_preds->data().get(),
+                   /*preds=*/d_preds->vector->data().get(),
                    /*data=*/d_x->vector->data().get(),
                    /*num_rows=*/num_row,
                    /*predict_proba=*/output_class_probabilities);
-
-  auto p_preds = std::make_unique<cuml4c::DeviceVector<float>>(std::move(d_preds));
-  *device_preds = static_cast<DeviceVectorHandleFloat>(p_preds.release());
 
   return 0;
 }

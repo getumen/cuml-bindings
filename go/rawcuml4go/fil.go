@@ -80,23 +80,38 @@ func (m *FILModel) Predict(
 	x *DeviceVectorFloat,
 	numRow int,
 	outputClassProbability bool,
+	preds *DeviceVectorFloat,
 ) (*DeviceVectorFloat, error) {
 
-	result := NewDeviceVectorFloatEmpty()
+	var err error
+
+	if preds == nil {
+		var predSize int
+		if outputClassProbability {
+			predSize = numRow * m.numClass
+		} else {
+			predSize = numRow
+		}
+
+		preds, err = NewDeviceVectorFloat(predSize)
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	ret := C.FILPredict(
 		m.pointer,
 		x.pointer,
 		(C.size_t)(numRow),
 		(C.bool)(outputClassProbability),
-		&result.pointer,
+		preds.pointer,
 	)
 
 	if ret != 0 {
 		return nil, ErrFILModelPredict
 	}
 
-	return result, nil
+	return preds, nil
 }
 
 // Close frees the model.

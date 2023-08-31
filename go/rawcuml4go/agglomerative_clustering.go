@@ -10,6 +10,7 @@ var (
 	ErrAgglomerativeClustering = errors.New("raw api: fail to agglomerative clustering")
 )
 
+// AgglomerativeClustering is raw api for agglomerative clustering
 func AgglomerativeClustering(
 	x *DeviceVectorFloat,
 	numRow int,
@@ -18,15 +19,31 @@ func AgglomerativeClustering(
 	metric int,
 	initNumCluster int,
 	numNeighbor int,
-) (
-	numCluster int32,
 	labels *DeviceVectorInt,
 	children *DeviceVectorInt,
-	err error,
+) (
+	*DeviceVectorInt,
+	*DeviceVectorInt,
+	int32,
+	error,
 ) {
+	var err error
 
-	labels = NewDeviceVectorIntEmpty()
-	children = NewDeviceVectorIntEmpty()
+	if labels == nil {
+		labels, err = NewDeviceVectorInt(numRow)
+		if err != nil {
+			return nil, nil, 0, err
+		}
+	}
+
+	if children == nil {
+		children, err = NewDeviceVectorInt(2 * (numRow - 1))
+		if err != nil {
+			return nil, nil, 0, err
+		}
+	}
+
+	var numCluster int32
 
 	ret := C.AgglomerativeClusteringFit(
 		x.pointer,
@@ -37,13 +54,13 @@ func AgglomerativeClustering(
 		(C.int)(numNeighbor),
 		(C.int)(initNumCluster),
 		(*C.int)(&numCluster),
-		&labels.pointer,
-		&children.pointer,
+		labels.pointer,
+		children.pointer,
 	)
 
 	if ret != 0 {
-		err = ErrAgglomerativeClustering
+		return nil, nil, 0, ErrAgglomerativeClustering
 	}
 
-	return
+	return labels, children, numCluster, nil
 }

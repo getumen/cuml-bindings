@@ -122,13 +122,13 @@ func (m *FILModel) Predict(
 	x []float32,
 	numRow int,
 	outputClassProbability bool) ([]float32, error) {
-	dX, err := rawcuml4go.NewDeviceVectorFloat(x)
+	dX, err := rawcuml4go.NewDeviceVectorFloatFromData(x)
 
 	if err != nil {
 		return nil, err
 	}
 
-	dPreds, err := m.raw.Predict(dX, numRow, outputClassProbability)
+	dPreds, err := m.raw.Predict(dX, numRow, outputClassProbability, nil)
 	if err != nil {
 		return nil, err
 	}

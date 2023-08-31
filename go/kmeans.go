@@ -61,7 +61,7 @@ func (k *Kmeans) Fit(
 	nIter int32,
 	err error,
 ) {
-	dX, err := rawcuml4go.NewDeviceVectorFloat(x)
+	dX, err := rawcuml4go.NewDeviceVectorFloatFromData(x)
 
 	if err != nil {
 		return
@@ -69,7 +69,7 @@ func (k *Kmeans) Fit(
 
 	var dSampleWeight *rawcuml4go.DeviceVectorFloat
 	if sampleWeight != nil {
-		dSampleWeight, err = rawcuml4go.NewDeviceVectorFloat(sampleWeight)
+		dSampleWeight, err = rawcuml4go.NewDeviceVectorFloatFromData(sampleWeight)
 		if err != nil {
 			return
 		}
@@ -87,6 +87,8 @@ func (k *Kmeans) Fit(
 		int(k.metric),
 		k.seed,
 		int(k.verbosity),
+		nil,
+		nil,
 	)
 	if err != nil {
 		err = ErrKmeans

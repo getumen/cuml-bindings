@@ -35,4 +35,4 @@ EXTERN_C int FILPredict(
     DeviceVectorHandleFloat device_x,
     size_t num_row,
     bool output_class_probabilities,
-    DeviceVectorHandleFloat *device_preds);
+    DeviceVectorHandleFloat device_preds);

@@ -22,15 +22,32 @@ func Kmeans(
 	metric int,
 	seed int,
 	verbosity int,
-) (
 	labels *DeviceVectorInt,
 	centroids *DeviceVectorFloat,
-	inertia float32,
-	nIter int32,
-	err error,
+) (
+	*DeviceVectorInt,
+	*DeviceVectorFloat,
+	float32,
+	int32,
+	error,
 ) {
-	labels = NewDeviceVectorIntEmpty()
-	centroids = NewDeviceVectorFloatEmpty()
+	var err error
+	if labels == nil {
+		labels, err = NewDeviceVectorInt(numRow)
+		if err != nil {
+			return nil, nil, 0, 0, err
+		}
+	}
+
+	if centroids == nil {
+		centroids, err = NewDeviceVectorFloat(k * numCol)
+		if err != nil {
+			return nil, nil, 0, 0, err
+		}
+	}
+
+	var inertia float32
+	var nIter int32
 
 	var ret C.int
 	if sampleWeight == nil {
@@ -46,8 +63,8 @@ func Kmeans(
 			C.int(metric),
 			(C.int)(seed),
 			(C.int)(verbosity),
-			&labels.pointer,
-			&centroids.pointer,
+			labels.pointer,
+			centroids.pointer,
 			(*C.float)(&inertia),
 			(*C.int)(&nIter),
 		)
@@ -64,16 +81,16 @@ func Kmeans(
 			C.int(metric),
 			(C.int)(seed),
 			(C.int)(verbosity),
-			&labels.pointer,
-			&centroids.pointer,
+			labels.pointer,
+			centroids.pointer,
 			(*C.float)(&inertia),
 			(*C.int)(&nIter),
 		)
 	}
 
 	if ret != 0 {
-		err = ErrKmeans
+		return nil, nil, 0, 0, ErrKmeans
 	}
 
-	return
+	return labels, centroids, inertia, nIter, nil
 }

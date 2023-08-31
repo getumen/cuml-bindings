@@ -5,7 +5,7 @@ use crate::{
     sys::{
         bindings::FILModelHandle,
         device_vector::DeviceVectorFloat,
-        fil::{fil_free_model, fil_load_model, fil_predict},
+        fil::{fil_free_model, fil_get_num_class, fil_load_model, fil_predict},
     },
 };
 
@@ -85,11 +85,22 @@ impl Model {
         num_row: usize,
         output_class_probabilities: bool,
     ) -> Result<Vec<f32>, CumlError> {
-        let d_data = DeviceVectorFloat::new(data)?;
+        let d_data = DeviceVectorFloat::from_slice(data)?;
+        let mut d_preds = DeviceVectorFloat::new(if output_class_probabilities {
+            num_row * fil_get_num_class(self.model)?
+        } else {
+            num_row
+        })?;
 
-        let result = fil_predict(self.model, &d_data, num_row, output_class_probabilities)?;
+        fil_predict(
+            self.model,
+            &d_data,
+            num_row,
+            output_class_probabilities,
+            &mut d_preds,
+        )?;
 
-        result.to_host()
+        d_preds.to_host()
     }
 }
 

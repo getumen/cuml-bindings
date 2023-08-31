@@ -19,7 +19,7 @@ func TestAgglomerativeClustering(t *testing.T) {
 		15,
 	)
 
-	numCluster, labels, children, err := target.Fit(
+	labels, children, numCluster, err := target.Fit(
 		features,
 		featureRow,
 		featureCol,

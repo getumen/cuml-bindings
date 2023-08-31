@@ -60,23 +60,22 @@ pub fn fil_predict(
     data: &DeviceVectorFloat,
     num_row: usize,
     output_class_probabilities: bool,
-) -> Result<DeviceVectorFloat, CumlError> {
-    let mut d_preds = DeviceVectorFloat::empty();
-
+    preds: &mut DeviceVectorFloat,
+) -> Result<(), CumlError> {
     let result = unsafe {
         FILPredict(
             model,
             data.as_ptr() as DeviceVectorHandleFloat,
             num_row,
             output_class_probabilities,
-            d_preds.as_mut_ptr() as *mut DeviceVectorHandleFloat,
+            preds.as_mut_ptr() as DeviceVectorHandleFloat,
         )
     };
     if result != 0 {
         Err(anyhow!("fail to predict"))?
     }
 
-    Ok(d_preds)
+    Ok(())
 }
 
 pub fn fil_get_num_class(model: FILModelHandle) -> Result<usize, CumlError> {

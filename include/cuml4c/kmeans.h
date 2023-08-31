@@ -21,7 +21,7 @@ EXTERN_C int KmeansFit(
     int metric,
     int seed,
     int verbosity,
-    DeviceVectorHandleInt *device_labels,
-    DeviceVectorHandleFloat *device_centroids,
+    DeviceVectorHandleInt device_labels,
+    DeviceVectorHandleFloat device_centroids,
     float *inertia,
     int *n_iter);

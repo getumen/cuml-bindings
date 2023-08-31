@@ -31,19 +31,25 @@ func NewAgglomerativeClustering(
 	}
 }
 
+// Fit returns agglomerative clustering result
+// output:
+// labels: cluster labels
+// children: children of each node
+// numCluster: number of cluster
+// error: error
 func (c *AgglomerativeClustering) Fit(
 	x []float32,
 	numRow int,
 	numCol int,
-) (numCluster int32, labels []int32, children []int32, err error) {
+) ([]int32, []int32, int32, error) {
 
-	dX, err := rawcuml4go.NewDeviceVectorFloat(x)
+	dX, err := rawcuml4go.NewDeviceVectorFloatFromData(x)
 	if err != nil {
-		return
+		return nil, nil, 0, err
 	}
 	defer dX.Close()
 
-	numCluster, dLabels, dChildren, err := rawcuml4go.AgglomerativeClustering(
+	dLabels, dChildren, numCluster, err := rawcuml4go.AgglomerativeClustering(
 		dX,
 		numRow,
 		numCol,
@@ -51,22 +57,24 @@ func (c *AgglomerativeClustering) Fit(
 		int(c.metric),
 		c.initNumCluster,
 		c.numNeighbor,
+		nil,
+		nil,
 	)
 	if err != nil {
-		err = ErrAgglomerativeClustering
+		return nil, nil, 0, err
 	}
 	defer dLabels.Close()
 	defer dChildren.Close()
 
-	labels, err = dLabels.ToHost()
+	labels, err := dLabels.ToHost()
 	if err != nil {
-		return
+		return nil, nil, 0, err
 	}
 
-	children, err = dChildren.ToHost()
+	children, err := dChildren.ToHost()
 	if err != nil {
-		return
+		return nil, nil, 0, err
 	}
 
-	return
+	return labels, children, numCluster, nil
 }
