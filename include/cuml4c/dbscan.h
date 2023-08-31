@@ -7,8 +7,10 @@
 #include <stdio.h>
 #endif
 
+#include "cuml4c/device_vector.h"
+
 EXTERN_C int DbscanFit(
-    const float *x,
+    DeviceVectorHandleFloat device_x,
     size_t num_row,
     size_t num_col,
     int min_pts,
@@ -16,4 +18,4 @@ EXTERN_C int DbscanFit(
     int metric,
     size_t max_bytes_per_batch,
     int verbosity,
-    int *out);
+    DeviceVectorHandleInt *device_labels);

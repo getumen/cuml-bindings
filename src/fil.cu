@@ -1,15 +1,15 @@
-#include "async_utils.cuh"
 #include "cuda_utils.h"
 #include "fil_utils.h"
 #include "handle_utils.h"
 #include "preprocessor.h"
 #include "stream_allocator.h"
 #include "treelite_utils.cuh"
+#include "device_vector_utils.h"
+#include "cuml4c/device_vector.h"
 #include "cuml4c/fil.h"
 
-#include <cuml/fil/fil.h>
-#include <thrust/async/copy.h>
 #include <thrust/device_vector.h>
+#include <cuml/fil/fil.h>
 #include <treelite/c_api.h>
 
 #include <memory>
@@ -173,10 +173,10 @@ __host__ int FILGetNumClasses(
 
 __host__ int FILPredict(
     FILModelHandle model,
-    const float *x,
+    DeviceVectorHandleFloat device_x,
     size_t num_row,
     bool output_class_probabilities,
-    float *out)
+    DeviceVectorHandleFloat *device_preds)
 {
 
   auto const fil_model = static_cast<FILModel const *>(model);
@@ -188,36 +188,23 @@ __host__ int FILPredict(
 
   auto &handle = *(fil_model->handle_);
 
+  auto d_x = static_cast<cuml4c::DeviceVector<float> *>(device_x);
+
   auto output_size = output_class_probabilities
                          ? fil_model->numClasses_ * num_row
                          : num_row;
-
-  const auto feature_size = fil_model->numFeatures_ * num_row;
-  // ensemble input data
-  thrust::device_vector<float> d_x(feature_size);
-
-  // TODO: async copy
-  thrust::copy(
-      x,
-      x + feature_size,
-      d_x.begin());
-
   // ensemble output
-  thrust::device_vector<float>
-      d_preds(output_size);
+  auto d_preds = std::make_unique<thrust::device_vector<float>>(output_size);
 
   ML::fil::predict(/*h=*/handle,
                    /*f=*/fil_model->forest_.get(),
-                   /*preds=*/d_preds.data().get(),
-                   /*data=*/d_x.data().get(),
+                   /*preds=*/d_preds->data().get(),
+                   /*data=*/d_x->vector->data().get(),
                    /*num_rows=*/num_row,
                    /*predict_proba=*/output_class_probabilities);
 
-  // TODO: async copy
-  thrust::copy(
-      d_preds.begin(),
-      d_preds.end(),
-      out);
+  auto p_preds = std::make_unique<cuml4c::DeviceVector<float>>(std::move(d_preds));
+  *device_preds = static_cast<DeviceVectorHandleFloat>(p_preds.release());
 
   return 0;
 }

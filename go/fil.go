@@ -1,11 +1,9 @@
 package cuml4go
 
-// #cgo LDFLAGS: -lcuml4c -lcuml++ -lcuml -lcumlprims
-// #include <stdlib.h>
-// #include "cuml4c/fil.h"
-import "C"
 import (
 	"errors"
+
+	"github.com/getumen/cuml/go/rawcuml4go"
 )
 
 var (
@@ -68,8 +66,7 @@ const (
 
 // FILModel is a Forest Inference Library model.
 type FILModel struct {
-	pointer  C.FILModelHandle
-	numClass int
+	raw *rawcuml4go.FILModel
 }
 
 // NewFILModel
@@ -96,64 +93,48 @@ func NewFILModel(
 	threadsPerTree int,
 	nItems int,
 ) (*FILModel, error) {
-	var handle C.FILModelHandle
-	ret := C.FILLoadModel(
-		C.int(modelType),
-		C.CString(filePath),
-		C.int(algo),
-		C.bool(classification),
-		C.float(threshold),
-		C.int(storageType),
-		C.int(blocksPerSm),
-		C.int(threadsPerTree),
-		C.int(nItems),
-		&handle,
+	raw, err := rawcuml4go.NewFILModel(
+		int(modelType),
+		filePath,
+		int(algo),
+		classification,
+		threshold,
+		int(storageType),
+		blocksPerSm,
+		threadsPerTree,
+		nItems,
 	)
-	if ret != 0 {
-		return nil, ErrFILModelLoad
-	}
 
-	var numClass uint64
-	ret = C.FILGetNumClasses(handle, (*C.ulong)(&numClass))
-	if ret != 0 {
-		return nil, ErrFILModelLoad
+	if err != nil {
+		return nil, err
 	}
 
 	return &FILModel{
-		pointer:  handle,
-		numClass: int(numClass),
+		raw: raw,
 	}, nil
-
 }
 
 // Predict returns the prediction result.
 // result is a float array of size num_row * num_class if output_class_probability is true,
 // or num_row otherwise.
 // given a row r and class c, the probability of r belonging to c is stored in result[r * num_class + c].
-func (m *FILModel) Predict(x []float32, numRow int, outputClassProbability bool) ([]float32, error) {
+func (m *FILModel) Predict(
+	x []float32,
+	numRow int,
+	outputClassProbability bool) ([]float32, error) {
+	dX, err := rawcuml4go.NewDeviceVectorFloat(x)
 
-	var outputSize int
-	if outputClassProbability {
-		outputSize = numRow * m.numClass
-	} else {
-		outputSize = numRow
+	if err != nil {
+		return nil, err
 	}
 
-	result := make([]float32, outputSize)
-
-	ret := C.FILPredict(
-		m.pointer,
-		(*C.float)(&x[0]),
-		(C.size_t)(numRow),
-		(C.bool)(outputClassProbability),
-		(*C.float)(&result[0]),
-	)
-
-	if ret != 0 {
-		return nil, ErrFILModelPredict
+	dPreds, err := m.raw.Predict(dX, numRow, outputClassProbability)
+	if err != nil {
+		return nil, err
 	}
+	defer dPreds.Close()
 
-	return result, nil
+	return dPreds.ToHost()
 }
 
 // PredictSingleClassScore returns the prediction result of the 1 class of {0,1} classification.
@@ -162,23 +143,22 @@ func (m *FILModel) PredictSingleClassScore(
 	numRow int,
 ) ([]float32, error) {
 	resultRaw, err := m.Predict(x, numRow, true)
-
 	if err != nil {
 		return nil, err
 	}
 
 	result := make([]float32, numRow)
 	for i := 0; i < numRow; i++ {
-		result[i] = resultRaw[i*m.numClass+1]
+		result[i] = resultRaw[i*m.NumClass()+1]
 	}
 	return result, nil
 }
 
 // Close frees the model.
 func (m *FILModel) Close() error {
-	ret := C.FILFreeModel(m.pointer)
-	if ret != 0 {
-		return ErrFILModelFree
-	}
-	return nil
+	return m.raw.Close()
+}
+
+func (m *FILModel) NumClass() int {
+	return m.raw.NumClass()
 }
