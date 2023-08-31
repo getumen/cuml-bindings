@@ -50,9 +50,9 @@ impl AgglomerativeClustering {
         }
     }
 
-    pub fn fit<'a>(
+    pub fn fit(
         &self,
-        data: &'a [f32],
+        data: &[f32],
         num_row: usize,
         num_col: usize,
     ) -> Result<AgglomerativeClusteringResult, CumlError> {
@@ -104,12 +104,7 @@ impl DBScan {
         }
     }
 
-    pub fn fit<'a>(
-        &self,
-        data: &'a [f32],
-        num_row: usize,
-        num_col: usize,
-    ) -> Result<Vec<i32>, CumlError> {
+    pub fn fit(&self, data: &[f32], num_row: usize, num_col: usize) -> Result<Vec<i32>, CumlError> {
         let d_data = DeviceVectorFloat::from_slice(data)?;
         let mut d_labels = DeviceVectorInt::new(num_row)?;
 

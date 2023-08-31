@@ -79,9 +79,9 @@ impl Model {
         Ok(Self { model })
     }
 
-    pub fn predict<'a>(
+    pub fn predict(
         &self,
-        data: &'a [f32],
+        data: &[f32],
         num_row: usize,
         output_class_probabilities: bool,
     ) -> Result<Vec<f32>, CumlError> {

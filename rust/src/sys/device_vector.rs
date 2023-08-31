@@ -24,7 +24,7 @@ impl DeviceVectorFloat {
         Ok(Self { handle })
     }
 
-    pub fn from_slice<'a>(data: &'a [f32]) -> Result<Self, CumlError> {
+    pub fn from_slice(data: &[f32]) -> Result<Self, CumlError> {
         let mut handle = null_mut();
         let result: i32 = unsafe {
             HostVectorToDeviceVectorFloat(data.as_ptr() as *const f32, data.len(), &mut handle)
@@ -91,7 +91,7 @@ impl DeviceVectorInt {
         Ok(Self { handle })
     }
 
-    pub fn from_slice<'a>(data: &'a [i32]) -> Result<Self, CumlError> {
+    pub fn from_slice(data: &[i32]) -> Result<Self, CumlError> {
         let mut handle = null_mut();
         let result: i32 = unsafe {
             HostVectorToDeviceVectorInt(data.as_ptr() as *const i32, data.len(), &mut handle)
