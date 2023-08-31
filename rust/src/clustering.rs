@@ -1,4 +1,9 @@
-use crate::{errors::CumlError, metric::Metric, sys::clustering};
+use crate::{
+    errors::CumlError,
+    log_level::LogLevel,
+    metric::Metric,
+    sys::{clustering, device_vector::DeviceVectorFloat},
+};
 
 pub struct AgglomerativeClusteringResult {
     num_cluster: i32,
@@ -20,58 +25,107 @@ impl AgglomerativeClusteringResult {
     }
 }
 
-pub fn agglomerative_clustering<'a>(
-    data: &'a [f32],
-    num_row: usize,
-    num_col: usize,
+pub struct AgglomerativeClustering {
     pairwise_conn: bool,
     metric: Metric,
     n_neighbors: i32,
     init_n_clusters: i32,
-) -> Result<AgglomerativeClusteringResult, CumlError> {
-    let result = clustering::agglomerative_clustering(
-        data,
-        num_row,
-        num_col,
-        pairwise_conn,
-        metric as i32,
-        n_neighbors,
-        init_n_clusters,
-    )?;
-
-    Ok(AgglomerativeClusteringResult {
-        num_cluster: result.0,
-        labels: result.1,
-        children: result.2,
-    })
 }
 
-pub fn dbscan<'a>(
-    data: &'a [f32],
-    num_row: usize,
-    num_col: usize,
+impl AgglomerativeClustering {
+    pub fn new(
+        pairwise_conn: bool,
+        metric: Metric,
+        n_neighbors: i32,
+        init_n_clusters: i32,
+    ) -> Self {
+        Self {
+            pairwise_conn,
+            metric,
+            n_neighbors,
+            init_n_clusters,
+        }
+    }
+
+    pub fn fit<'a>(
+        &self,
+        data: &'a [f32],
+        num_row: usize,
+        num_col: usize,
+    ) -> Result<AgglomerativeClusteringResult, CumlError> {
+        let d_data = DeviceVectorFloat::new(data)?;
+        let (num_cluster, d_labels, d_children) = clustering::agglomerative_clustering(
+            &d_data,
+            num_row,
+            num_col,
+            self.pairwise_conn,
+            self.metric as i32,
+            self.n_neighbors,
+            self.init_n_clusters,
+        )?;
+
+        Ok(AgglomerativeClusteringResult {
+            num_cluster,
+            labels: d_labels.to_host()?,
+            children: d_children.to_host()?,
+        })
+    }
+}
+
+pub struct DBScan {
     min_pts: i32,
     eps: f64,
     metric: Metric,
     max_bytes_per_batch: usize,
-    verbosity: i32,
-) -> Result<Vec<i32>, CumlError> {
-    clustering::dbscan(
-        data,
-        num_row,
-        num_col,
-        min_pts,
-        eps,
-        metric as i32,
-        max_bytes_per_batch,
-        verbosity,
-    )
+    verbosity: LogLevel,
 }
 
+impl DBScan {
+    pub fn new(
+        min_pts: i32,
+        eps: f64,
+        metric: Metric,
+        max_bytes_per_batch: usize,
+        verbosity: LogLevel,
+    ) -> Self {
+        Self {
+            min_pts,
+            eps,
+            metric,
+            max_bytes_per_batch,
+            verbosity,
+        }
+    }
+
+    pub fn fit<'a>(
+        &self,
+        data: &'a [f32],
+        num_row: usize,
+        num_col: usize,
+    ) -> Result<Vec<i32>, CumlError> {
+        let d_data = DeviceVectorFloat::new(data)?;
+
+        let d_labels = clustering::dbscan(
+            &d_data,
+            num_row,
+            num_col,
+            self.min_pts,
+            self.eps,
+            self.metric as i32,
+            self.max_bytes_per_batch,
+            self.verbosity as i32,
+        )?;
+
+        d_labels.to_host()
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum KmeansInitMethod {
     KMeansPlusPlus = 0,
     Random = 1,
-    Array = 2,
+    // TODO: implement Array
+    // Array = 2,
 }
 
 pub struct KmeansResult {
@@ -99,37 +153,66 @@ impl KmeansResult {
     }
 }
 
-pub fn kmeans<'a, 'b>(
-    data: &'a [f32],
-    num_row: usize,
-    num_col: usize,
-    sample_weight: Option<&'b [f32]>,
+pub struct Kmeans {
     k: i32,
     max_iter: i32,
     tol: f64,
     init_method: KmeansInitMethod,
     metric: Metric,
     seed: i32,
-    verbosity: i32,
-) -> Result<KmeansResult, CumlError> {
-    let result = clustering::kmeans(
-        data,
-        num_row,
-        num_col,
-        sample_weight,
-        k,
-        max_iter,
-        tol,
-        init_method as i32,
-        metric as i32,
-        seed,
-        verbosity,
-    )?;
+    verbosity: LogLevel,
+}
 
-    Ok(KmeansResult {
-        labels: result.0,
-        centroids: result.1,
-        inertia: result.2,
-        n_iter: result.3,
-    })
+impl Kmeans {
+    pub fn new(
+        k: i32,
+        max_iter: i32,
+        tol: f64,
+        init_method: KmeansInitMethod,
+        metric: Metric,
+        seed: i32,
+        verbosity: LogLevel,
+    ) -> Self {
+        Self {
+            k,
+            max_iter,
+            tol,
+            init_method,
+            metric,
+            seed,
+            verbosity,
+        }
+    }
+
+    pub fn fit(
+        &self,
+        data: &[f32],
+        num_row: usize,
+        num_col: usize,
+        sample_weight: Option<&[f32]>,
+    ) -> Result<KmeansResult, CumlError> {
+        let d_data = DeviceVectorFloat::new(data)?;
+        let d_sample_weight = sample_weight.map(DeviceVectorFloat::new).transpose()?;
+
+        let (d_labels, d_centroids, inertia, n_iter) = clustering::kmeans(
+            &d_data,
+            num_row,
+            num_col,
+            d_sample_weight.as_ref().map(|x| x),
+            self.k,
+            self.max_iter,
+            self.tol,
+            self.init_method as i32,
+            self.metric as i32,
+            self.seed,
+            self.verbosity as i32,
+        )?;
+
+        Ok(KmeansResult {
+            labels: d_labels.to_host()?,
+            centroids: d_centroids.to_host()?,
+            inertia,
+            n_iter,
+        })
+    }
 }

@@ -1,21 +1,22 @@
-#include "async_utils.cuh"
 #include "cuda_utils.h"
 #include "handle_utils.h"
 #include "preprocessor.h"
 #include "stream_allocator.h"
+#include "device_vector_utils.h"
+#include "cuml4c/device_vector.h"
 #include "cuml4c/kmeans.h"
 
-#include <thrust/async/copy.h>
 #include <thrust/device_vector.h>
 #include <cuml/cluster/kmeans.hpp>
 
 #include <memory>
 
+// TODO: support initMethod == Array
 __host__ int KmeansFit(
-    const float *x,
+    DeviceVectorHandleFloat device_x,
     int num_row,
     int num_col,
-    const float *sample_weight,
+    DeviceVectorHandleFloat device_sample_weight,
     int k,
     int max_iters,
     double tol,
@@ -23,11 +24,13 @@ __host__ int KmeansFit(
     int metric,
     int seed,
     int verbosity,
-    int *labels,
-    float *centroids,
+    DeviceVectorHandleInt *device_labels,
+    DeviceVectorHandleFloat *device_centroids,
     float *inertia,
     int *n_iter)
 {
+
+    auto d_x = static_cast<cuml4c::DeviceVector<float> *>(device_x);
 
     ML::kmeans::KMeansParams params;
     params.n_clusters = k;
@@ -47,68 +50,47 @@ __host__ int KmeansFit(
     raft::handle_t handle;
     cuml4c::handle_utils::initializeHandle(handle, stream_view.value());
 
-    // kmeans input data
-    const auto value_length = num_row * num_col;
-
     auto const n_centroid_values = params.n_clusters * num_col;
-    thrust::device_vector<float> d_src_data(value_length);
-    // TODO: async copy
-    thrust::copy(
-        x,
-        x + value_length,
-        d_src_data.begin());
+    auto d_centroids = std::make_unique<thrust::device_vector<float>>(n_centroid_values);
 
-    thrust::device_vector<float> d_sample_weight(num_row);
-    if (sample_weight != nullptr)
+    auto d_labels = std::make_unique<thrust::device_vector<int>>(num_row);
+
+    if (device_sample_weight == nullptr)
     {
-        thrust::copy(
-            sample_weight,
-            sample_weight + num_row,
-            d_sample_weight.begin());
+        ML::kmeans::fit_predict(
+            handle,
+            params,
+            d_x->vector->data().get(),
+            num_row,
+            num_col,
+            nullptr,
+            d_centroids->data().get(),
+            d_labels->data().get(),
+            *inertia,
+            *n_iter);
     }
     else
     {
-        thrust::fill(
-            d_sample_weight.begin(),
-            d_sample_weight.end(),
-            1.0f);
+        auto d_sample_weight = static_cast<cuml4c::DeviceVector<float> *>(device_sample_weight);
+
+        ML::kmeans::fit_predict(
+            handle,
+            params,
+            d_x->vector->data().get(),
+            num_row,
+            num_col,
+            d_sample_weight->vector->data().get(),
+            d_centroids->data().get(),
+            d_labels->data().get(),
+            *inertia,
+            *n_iter);
     }
 
-    // kmeans outputs
-    thrust::device_vector<float> d_pred_centroids(n_centroid_values);
-    if (params.init == ML::kmeans::KMeansParams::InitMethod::Array)
-    {
-        // TODO: async copy
-        thrust::copy(
-            centroids,
-            centroids + n_centroid_values,
-            d_pred_centroids.begin());
-    }
-    thrust::device_vector<int> d_pred_labels(num_row);
+    auto p_labels = std::make_unique<cuml4c::DeviceVector<int>>(std::move(d_labels));
+    *device_labels = static_cast<DeviceVectorHandleInt>(p_labels.release());
 
-    ML::kmeans::fit_predict(
-        handle,
-        params,
-        d_src_data.data().get(),
-        num_row,
-        num_col,
-        d_sample_weight.data().get(),
-        d_pred_centroids.data().get(),
-        d_pred_labels.data().get(),
-        *inertia,
-        *n_iter);
-
-    // TODO: async copy
-    thrust::copy(
-        d_pred_labels.begin(),
-        d_pred_labels.end(),
-        labels);
-
-    // TODO: async copy
-    thrust::copy(
-        d_pred_centroids.begin(),
-        d_pred_centroids.end(),
-        centroids);
+    auto p_centroids = std::make_unique<cuml4c::DeviceVector<float>>(std::move(d_centroids));
+    *device_centroids = static_cast<DeviceVectorHandleFloat>(p_centroids.release());
 
     return 0;
 }

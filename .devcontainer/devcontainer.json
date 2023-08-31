@@ -26,7 +26,8 @@
             "extensions": [
 				"ms-vscode.cpptools-extension-pack",
 				"ms-azuretools.vscode-docker",
-				"rust-lang.rust-analyzer"
+				"rust-lang.rust-analyzer",
+				"GitHub.copilot"
 			]
         }
     },

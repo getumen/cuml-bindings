@@ -15,18 +15,21 @@ func TestKmeans(t *testing.T) {
 	featureRow := 114
 	k := 3
 
-	labels, centroids, inertia, nIter, err := cuml4go.Kmeans(
-		features,
-		featureRow,
-		featureCol,
-		nil,
+	target := cuml4go.NewKmeans(
 		k,
 		10,
 		0.0,
 		cuml4go.KMeansPlusPlus,
 		cuml4go.L2Expanded,
 		42,
-		0,
+		cuml4go.Info,
+	)
+
+	labels, centroids, inertia, nIter, err := target.Fit(
+		features,
+		featureRow,
+		featureCol,
+		nil,
 	)
 
 	require.NoError(t, err)

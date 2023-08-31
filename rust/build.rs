@@ -5,6 +5,7 @@ fn main() {
         .raw_line("#![allow(non_camel_case_types, non_snake_case, non_upper_case_globals, unused)]")
         .header("../include/cuml4c/agglomerative_clustering.h")
         .header("../include/cuml4c/dbscan.h")
+        .header("../include/cuml4c/device_vector.h")
         .header("../include/cuml4c/fil.h")
         .header("../include/cuml4c/kmeans.h")
         .parse_callbacks(Box::new(bindgen::CargoCallbacks))

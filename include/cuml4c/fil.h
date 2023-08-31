@@ -7,6 +7,8 @@
 #include <stdio.h>
 #endif
 
+#include "cuml4c/device_vector.h"
+
 typedef void *FILModelHandle;
 
 EXTERN_C int FILLoadModel(
@@ -30,7 +32,7 @@ EXTERN_C int FILGetNumClasses(
 
 EXTERN_C int FILPredict(
     FILModelHandle model,
-    const float *x,
+    DeviceVectorHandleFloat device_x,
     size_t num_row,
     bool output_class_probabilities,
-    float *out);
+    DeviceVectorHandleFloat *device_preds);

@@ -31,7 +31,7 @@ if(CUDA_FOUND)
 
     target_link_libraries(objcuml4c PRIVATE 
         ${CUDA_LIBRARIES} 
-        Thrust 
+        rmm::Thrust 
         rmm::rmm 
         treelite 
         cuml 
@@ -45,12 +45,13 @@ if(CUDA_FOUND)
 
     target_sources(objcuml4c PRIVATE
         agglomerative_clustering.cu
-        async_utils.cuh
         cuda_utils.cu
         cuda_utils.h
         dbscan.cu
         device_allocator.cu
         device_allocator.h
+        device_vector.cu
+        device_vector_utils.h
         fil_utils.cu
         fil_utils.h
         fil.cu
@@ -61,7 +62,6 @@ if(CUDA_FOUND)
         stream_allocator.cu
         stream_allocator.h
         treelite_utils.cuh
-        unique_marker.cuh
     )
 
 endif()

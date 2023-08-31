@@ -4,7 +4,8 @@ use crate::{
     errors::CumlError,
     sys::{
         bindings::FILModelHandle,
-        fil::{fil_free_model, fil_get_num_class, fil_load_model, fil_predict},
+        device_vector::DeviceVectorFloat,
+        fil::{fil_free_model, fil_load_model, fil_predict},
     },
 };
 
@@ -50,7 +51,6 @@ pub enum StorageType {
 
 pub struct Model {
     model: FILModelHandle,
-    num_class: usize,
 }
 
 impl Model {
@@ -66,18 +66,17 @@ impl Model {
         n_items: i32,
     ) -> Result<Self, CumlError> {
         let model = fil_load_model(
-            model_type,
+            model_type as i32,
             model_path,
-            algo,
+            algo as i32,
             classification,
             threshold,
-            storage_type,
+            storage_type as i32,
             block_per_sm,
             thread_per_tree,
             n_items,
         )?;
-        let num_class = fil_get_num_class(model)?;
-        Ok(Self { model, num_class })
+        Ok(Self { model })
     }
 
     pub fn predict<'a>(
@@ -86,15 +85,11 @@ impl Model {
         num_row: usize,
         output_class_probabilities: bool,
     ) -> Result<Vec<f32>, CumlError> {
-        let result = fil_predict(
-            self.model,
-            data,
-            num_row,
-            output_class_probabilities,
-            self.num_class,
-        )?;
+        let d_data = DeviceVectorFloat::new(data)?;
 
-        Ok(result)
+        let result = fil_predict(self.model, &d_data, num_row, output_class_probabilities)?;
+
+        result.to_host()
     }
 }
 
