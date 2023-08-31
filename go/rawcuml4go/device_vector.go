@@ -35,24 +35,40 @@ func NewDeviceVectorFloat(size int) (*DeviceVectorFloat, error) {
 	}, nil
 }
 
+func HostToDeviceFloat(
+	data []float32,
+	vector *DeviceVectorFloat,
+) error {
+	ret := C.HostVectorToDeviceVectorFloat(
+		(*C.float)(&data[0]),
+		(C.ulong)(len(data)),
+		&vector.pointer,
+	)
+
+	if ret != 0 {
+		return ErrRawHostVector
+	}
+
+	return nil
+}
+
 func NewDeviceVectorFloatFromData(
 	data []float32,
 ) (*DeviceVectorFloat, error) {
 
-	var pointer C.DeviceVectorHandleFloat
-	ret := C.HostVectorToDeviceVectorFloat(
-		(*C.float)(&data[0]),
-		(C.ulong)(len(data)),
-		&pointer,
+	vector, err := NewDeviceVectorFloat(len(data))
+	if err != nil {
+		return nil, err
+	}
+	err = HostToDeviceFloat(
+		data,
+		vector,
 	)
-
-	if ret != 0 {
-		return nil, ErrRawHostVector
+	if err != nil {
+		return nil, err
 	}
 
-	return &DeviceVectorFloat{
-		pointer: pointer,
-	}, nil
+	return vector, nil
 }
 
 func (d *DeviceVectorFloat) Close() error {
@@ -126,24 +142,40 @@ func NewDeviceVectorInt(size int) (*DeviceVectorInt, error) {
 	}, nil
 }
 
+func HostToDeviceInt(
+	data []int32,
+	vector *DeviceVectorInt,
+) error {
+	ret := C.HostVectorToDeviceVectorInt(
+		(*C.int)(&data[0]),
+		(C.ulong)(len(data)),
+		&vector.pointer,
+	)
+
+	if ret != 0 {
+		return ErrRawHostVector
+	}
+
+	return nil
+}
+
 func NewDeviceVectorIntFromData(
 	data []int32,
 ) (*DeviceVectorInt, error) {
 
-	var pointer C.DeviceVectorHandleInt
-	ret := C.HostVectorToDeviceVectorInt(
-		(*C.int)(&data[0]),
-		(C.ulong)(len(data)),
-		&pointer,
+	vector, err := NewDeviceVectorInt(len(data))
+	if err != nil {
+		return nil, err
+	}
+	err = HostToDeviceInt(
+		data,
+		vector,
 	)
-
-	if ret != 0 {
-		return nil, ErrRawHostVector
+	if err != nil {
+		return nil, err
 	}
 
-	return &DeviceVectorInt{
-		pointer: pointer,
-	}, nil
+	return vector, nil
 }
 
 func (d *DeviceVectorInt) Close() error {
