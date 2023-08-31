@@ -56,10 +56,10 @@ func (d *DBScan) Fit(
 		d.maxBytesPerBatch,
 		int(d.verbosity),
 	)
-
 	if err != nil {
 		return nil, err
 	}
+	defer dLabels.Close()
 
 	result, err := dLabels.ToHost()
 

@@ -38,10 +38,10 @@ func (c *AgglomerativeClustering) Fit(
 ) (numCluster int32, labels []int32, children []int32, err error) {
 
 	dX, err := rawcuml4go.NewDeviceVectorFloat(x)
-
 	if err != nil {
 		return
 	}
+	defer dX.Close()
 
 	numCluster, dLabels, dChildren, err := rawcuml4go.AgglomerativeClustering(
 		dX,
@@ -52,10 +52,11 @@ func (c *AgglomerativeClustering) Fit(
 		c.initNumCluster,
 		c.numNeighbor,
 	)
-
 	if err != nil {
 		err = ErrAgglomerativeClustering
 	}
+	defer dLabels.Close()
+	defer dChildren.Close()
 
 	labels, err = dLabels.ToHost()
 	if err != nil {

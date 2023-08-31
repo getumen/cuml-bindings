@@ -88,10 +88,11 @@ func (k *Kmeans) Fit(
 		k.seed,
 		int(k.verbosity),
 	)
-
 	if err != nil {
 		err = ErrKmeans
 	}
+	defer dLabels.Close()
+	defer dCentroids.Close()
 
 	labels, err = dLabels.ToHost()
 	if err != nil {

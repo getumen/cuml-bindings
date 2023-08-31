@@ -129,10 +129,10 @@ func (m *FILModel) Predict(
 	}
 
 	dPreds, err := m.raw.Predict(dX, numRow, outputClassProbability)
-
 	if err != nil {
 		return nil, err
 	}
+	defer dPreds.Close()
 
 	return dPreds.ToHost()
 }
@@ -143,7 +143,6 @@ func (m *FILModel) PredictSingleClassScore(
 	numRow int,
 ) ([]float32, error) {
 	resultRaw, err := m.Predict(x, numRow, true)
-
 	if err != nil {
 		return nil, err
 	}

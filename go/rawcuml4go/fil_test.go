@@ -30,6 +30,7 @@ func TestFIL(t *testing.T) {
 
 	dFeatire, err := rawcuml4go.NewDeviceVectorFloat(features)
 	require.NoError(t, err)
+	defer dFeatire.Close()
 
 	size, err := dFeatire.GetSize()
 	require.NoError(t, err)
