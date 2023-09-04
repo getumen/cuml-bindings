@@ -111,5 +111,6 @@
         "./rust/Cargo.toml",
         "./rust/Cargo.toml",
         "./rust/Cargo.toml"
-    ]
+    ],
+    "C_Cpp.errorSquiggles": "disabled"
 }

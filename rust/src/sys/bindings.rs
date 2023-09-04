@@ -1146,9 +1146,67 @@ extern "C" {
 extern "C" {
     pub fn __overflow(arg1: *mut FILE, arg2: ::std::os::raw::c_int) -> ::std::os::raw::c_int;
 }
+pub type DeviceVectorHandleFloat = *mut ::std::os::raw::c_void;
+pub type DeviceVectorHandleInt = *mut ::std::os::raw::c_void;
+extern "C" {
+    pub fn DeviceVectorFloatCreate(
+        size: usize,
+        out: *mut DeviceVectorHandleFloat,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn DeviceVectorToHostVectorFloat(
+        device: DeviceVectorHandleFloat,
+        out: *mut f32,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn HostVectorToDeviceVectorFloat(
+        host: *const f32,
+        size: usize,
+        out: *mut DeviceVectorHandleFloat,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn DeviceVectorFloatGetSize(
+        device: DeviceVectorHandleFloat,
+        out: *mut usize,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn DeviceVectorFloatFree(device: DeviceVectorHandleFloat) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn DeviceVectorIntCreate(
+        size: usize,
+        out: *mut DeviceVectorHandleInt,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn DeviceVectorToHostVectorInt(
+        device: DeviceVectorHandleInt,
+        out: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn HostVectorToDeviceVectorInt(
+        host: *const ::std::os::raw::c_int,
+        size: usize,
+        out: *mut DeviceVectorHandleInt,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn DeviceVectorIntGetSize(
+        device: DeviceVectorHandleInt,
+        out: *mut usize,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn DeviceVectorIntFree(device: DeviceVectorHandleInt) -> ::std::os::raw::c_int;
+}
 extern "C" {
     pub fn AgglomerativeClusteringFit(
-        x: *const f32,
+        device_x: DeviceVectorHandleFloat,
         num_row: usize,
         num_col: usize,
         pairwise_conn: bool,
@@ -1156,13 +1214,13 @@ extern "C" {
         n_neighbors: ::std::os::raw::c_int,
         init_n_clusters: ::std::os::raw::c_int,
         n_clusters: *mut ::std::os::raw::c_int,
-        labels: *mut ::std::os::raw::c_int,
-        children: *mut ::std::os::raw::c_int,
+        device_labels: DeviceVectorHandleInt,
+        device_children: DeviceVectorHandleInt,
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
     pub fn DbscanFit(
-        x: *const f32,
+        device_x: DeviceVectorHandleFloat,
         num_row: usize,
         num_col: usize,
         min_pts: ::std::os::raw::c_int,
@@ -1170,7 +1228,7 @@ extern "C" {
         metric: ::std::os::raw::c_int,
         max_bytes_per_batch: usize,
         verbosity: ::std::os::raw::c_int,
-        out: *mut ::std::os::raw::c_int,
+        device_labels: DeviceVectorHandleInt,
     ) -> ::std::os::raw::c_int;
 }
 pub type FILModelHandle = *mut ::std::os::raw::c_void;
@@ -1197,18 +1255,18 @@ extern "C" {
 extern "C" {
     pub fn FILPredict(
         model: FILModelHandle,
-        x: *const f32,
+        device_x: DeviceVectorHandleFloat,
         num_row: usize,
         output_class_probabilities: bool,
-        out: *mut f32,
+        device_preds: DeviceVectorHandleFloat,
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
     pub fn KmeansFit(
-        x: *const f32,
+        device_x: DeviceVectorHandleFloat,
         num_row: ::std::os::raw::c_int,
         num_col: ::std::os::raw::c_int,
-        sample_weight: *const f32,
+        device_sample_weight: DeviceVectorHandleFloat,
         k: ::std::os::raw::c_int,
         max_iters: ::std::os::raw::c_int,
         tol: f64,
@@ -1216,8 +1274,8 @@ extern "C" {
         metric: ::std::os::raw::c_int,
         seed: ::std::os::raw::c_int,
         verbosity: ::std::os::raw::c_int,
-        labels: *mut ::std::os::raw::c_int,
-        centroids: *mut f32,
+        device_labels: DeviceVectorHandleInt,
+        device_centroids: DeviceVectorHandleFloat,
         inertia: *mut f32,
         n_iter: *mut ::std::os::raw::c_int,
     ) -> ::std::os::raw::c_int;

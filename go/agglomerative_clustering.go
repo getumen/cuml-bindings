@@ -1,44 +1,80 @@
 package cuml4go
 
-// #cgo LDFLAGS: -lcuml4c -lcuml++ -lcuml -lcumlprims
-// #include <stdlib.h>
-// #include "cuml4c/agglomerative_clustering.h"
-import "C"
+import (
+	"errors"
 
-import "errors"
+	"github.com/getumen/cuml/go/rawcuml4go"
+)
 
 var (
 	ErrAgglomerativeClustering = errors.New("fail to agglomerative clustering")
 )
 
-func AgglomerativeClustering(
-	x []float32,
-	numRow int,
-	numCol int,
+type AgglomerativeClustering struct {
+	pairwiseConn   bool
+	metric         Metric
+	initNumCluster int
+	numNeighbor    int
+}
+
+func NewAgglomerativeClustering(
 	pairwiseConn bool,
 	metric Metric,
 	initNumCluster int,
 	numNeighbor int,
-) (numCluster int32, labels []int32, children []int32, err error) {
-	labels = make([]int32, numRow)
-	children = make([]int32, (numRow-1)*2)
+) *AgglomerativeClustering {
+	return &AgglomerativeClustering{
+		pairwiseConn:   pairwiseConn,
+		metric:         metric,
+		initNumCluster: initNumCluster,
+		numNeighbor:    numNeighbor,
+	}
+}
 
-	ret := C.AgglomerativeClusteringFit(
-		(*C.float)(&x[0]),
-		(C.ulong)(numRow),
-		(C.ulong)(numCol),
-		(C.bool)(pairwiseConn),
-		(C.int)(metric),
-		(C.int)(numNeighbor),
-		(C.int)(initNumCluster),
-		(*C.int)(&numCluster),
-		(*C.int)(&labels[0]),
-		(*C.int)(&children[0]),
+// Fit returns agglomerative clustering result
+// output:
+// labels: cluster labels
+// children: children of each node
+// numCluster: number of cluster
+// error: error
+func (c *AgglomerativeClustering) Fit(
+	x []float32,
+	numRow int,
+	numCol int,
+) ([]int32, []int32, int32, error) {
+
+	dX, err := rawcuml4go.NewDeviceVectorFloatFromData(x)
+	if err != nil {
+		return nil, nil, 0, err
+	}
+	defer dX.Close()
+
+	dLabels, dChildren, numCluster, err := rawcuml4go.AgglomerativeClustering(
+		dX,
+		numRow,
+		numCol,
+		c.pairwiseConn,
+		int(c.metric),
+		c.initNumCluster,
+		c.numNeighbor,
+		nil,
+		nil,
 	)
+	if err != nil {
+		return nil, nil, 0, err
+	}
+	defer dLabels.Close()
+	defer dChildren.Close()
 
-	if ret != 0 {
-		err = ErrAgglomerativeClustering
+	labels, err := dLabels.ToHost()
+	if err != nil {
+		return nil, nil, 0, err
 	}
 
-	return
+	children, err := dChildren.ToHost()
+	if err != nil {
+		return nil, nil, 0, err
+	}
+
+	return labels, children, numCluster, nil
 }

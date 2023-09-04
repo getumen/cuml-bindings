@@ -7,11 +7,13 @@
 #include <stdio.h>
 #endif
 
+#include "cuml4c/device_vector.h"
+
 EXTERN_C int KmeansFit(
-    const float *x,
+    DeviceVectorHandleFloat device_x,
     int num_row,
     int num_col,
-    const float *sample_weight,
+    DeviceVectorHandleFloat device_sample_weight,
     int k,
     int max_iters,
     double tol,
@@ -19,7 +21,7 @@ EXTERN_C int KmeansFit(
     int metric,
     int seed,
     int verbosity,
-    int *labels,
-    float *centroids,
+    DeviceVectorHandleInt device_labels,
+    DeviceVectorHandleFloat device_centroids,
     float *inertia,
     int *n_iter);

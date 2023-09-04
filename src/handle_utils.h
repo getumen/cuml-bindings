@@ -1,6 +1,6 @@
 #pragma once
 
-#include <raft/handle.hpp>
+#include <raft/core/handle.hpp>
 #include <rmm/cuda_stream_view.hpp>
 
 namespace cuml4c
