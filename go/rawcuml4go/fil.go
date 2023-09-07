@@ -1,6 +1,6 @@
 package rawcuml4go
 
-// #cgo LDFLAGS: -L/opt/conda/lib -ltreelite -lcuml4c -lcuml++ -lcuml -lcumlprims_mg
+// #cgo LDFLAGS: -ltreelite -lcuml4c -lcuml++ -lcuml -lcumlprims_mg
 // #include <stdlib.h>
 // #include "cuml4c/fil.h"
 import "C"
