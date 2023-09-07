@@ -1,6 +1,6 @@
 package rawcuml4go
 
-// #cgo LDFLAGS: -lcuml4c -lcuml++ -lcuml -lcumlprims
+// #cgo LDFLAGS: -lcuml4c -lcuml++ -lcuml -lcumlprims_mg
 // #include <stdlib.h>
 // #include "cuml4c/kmeans.h"
 import "C"
@@ -11,10 +11,9 @@ var (
 )
 
 func Kmeans(
-	x *DeviceVectorFloat,
+	x []float32,
 	numRow int,
 	numCol int,
-	sampleWeight *DeviceVectorFloat,
 	k int,
 	maxIter int,
 	tol float64,
@@ -22,71 +21,43 @@ func Kmeans(
 	metric int,
 	seed int,
 	verbosity int,
-	labels *DeviceVectorInt,
-	centroids *DeviceVectorFloat,
+	labels []int32,
+	centroids []float32,
 ) (
-	*DeviceVectorInt,
-	*DeviceVectorFloat,
+	[]int32,
+	[]float32,
 	float32,
 	int32,
 	error,
 ) {
-	var err error
 	if labels == nil {
-		labels, err = NewDeviceVectorInt(numRow)
-		if err != nil {
-			return nil, nil, 0, 0, err
-		}
+		labels = make([]int32, numRow)
 	}
 
 	if centroids == nil {
-		centroids, err = NewDeviceVectorFloat(k * numCol)
-		if err != nil {
-			return nil, nil, 0, 0, err
-		}
+		centroids = make([]float32, k*numCol)
 	}
 
 	var inertia float32
 	var nIter int32
 
 	var ret C.int
-	if sampleWeight == nil {
-		ret = C.KmeansFit(
-			x.pointer,
-			(C.int)(numRow),
-			(C.int)(numCol),
-			nil,
-			(C.int)(k),
-			(C.int)(maxIter),
-			(C.double)(tol),
-			C.int(init),
-			C.int(metric),
-			(C.int)(seed),
-			(C.int)(verbosity),
-			labels.pointer,
-			centroids.pointer,
-			(*C.float)(&inertia),
-			(*C.int)(&nIter),
-		)
-	} else {
-		ret = C.KmeansFit(
-			x.pointer,
-			(C.int)(numRow),
-			(C.int)(numCol),
-			sampleWeight.pointer,
-			(C.int)(k),
-			(C.int)(maxIter),
-			(C.double)(tol),
-			C.int(init),
-			C.int(metric),
-			(C.int)(seed),
-			(C.int)(verbosity),
-			labels.pointer,
-			centroids.pointer,
-			(*C.float)(&inertia),
-			(*C.int)(&nIter),
-		)
-	}
+	ret = C.KmeansFit(
+		(*C.float)(&x[0]),
+		(C.int)(numRow),
+		(C.int)(numCol),
+		(C.int)(k),
+		(C.int)(maxIter),
+		(C.double)(tol),
+		C.int(init),
+		C.int(metric),
+		(C.int)(seed),
+		(C.int)(verbosity),
+		(*C.int)(&labels[0]),
+		(*C.float)(&centroids[0]),
+		(*C.float)(&inertia),
+		(*C.int)(&nIter),
+	)
 
 	if ret != 0 {
 		return nil, nil, 0, 0, ErrKmeans

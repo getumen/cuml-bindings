@@ -12,7 +12,7 @@ func TestFIL(t *testing.T) {
 
 	target, err := cuml4go.NewFILModel(
 		cuml4go.XGBoost,
-		"testdata/xgboost.model",
+		"../testdata/xgboost.model",
 		cuml4go.AlgoAuto,
 		true,
 		0.0,
@@ -26,8 +26,8 @@ func TestFIL(t *testing.T) {
 
 	nRow := 114
 
-	features := csvToFloat32Array(t, "testdata/feature.csv")
-	expectedScores := csvToFloat32Array(t, "testdata/score-xgboost.csv")
+	features := csvToFloat32Array(t, "../testdata/feature.csv")
+	expectedScores := csvToFloat32Array(t, "../testdata/score-xgboost.csv")
 
 	actual, err := target.PredictSingleClassScore(features, nRow)
 	if err != nil {

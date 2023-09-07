@@ -1,6 +1,6 @@
 package rawcuml4go
 
-// #cgo LDFLAGS: -lcuml4c -lcuml++ -lcuml -lcumlprims
+// #cgo LDFLAGS: -lcuml4c -lcuml++ -lcuml -lcumlprims_mg
 // #include <stdlib.h>
 // #include "cuml4c/dbscan.h"
 import "C"
@@ -12,7 +12,7 @@ var (
 
 // DBScan is raw api for dbscan
 func DBScan(
-	x *DeviceVectorFloat,
+	x []float32,
 	numRow int,
 	numCol int,
 	minPts int,
@@ -20,19 +20,15 @@ func DBScan(
 	metric int,
 	maxBytesPerBatch int,
 	verbosity int,
-	labels *DeviceVectorInt,
-) (*DeviceVectorInt, error) {
-	var err error
+	labels []int32,
+) ([]int32, error) {
 
 	if labels == nil {
-		labels, err = NewDeviceVectorInt(numRow)
-		if err != nil {
-			return nil, err
-		}
+		labels = make([]int32, numRow)
 	}
 
 	ret := C.DbscanFit(
-		x.pointer,
+		(*C.float)(&x[0]),
 		(C.size_t)(numRow),
 		(C.size_t)(numCol),
 		(C.int)(minPts),
@@ -40,7 +36,7 @@ func DBScan(
 		(C.int)(metric),
 		(C.size_t)(maxBytesPerBatch),
 		(C.int)(verbosity),
-		labels.pointer,
+		(*C.int)(&labels[0]),
 	)
 
 	if ret != 0 {

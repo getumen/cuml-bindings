@@ -3,13 +3,6 @@
         "dockerfile": "Dockerfile"
     },
     "features": {
-        "ghcr.io/devcontainers/features/common-utils:2": {
-            "uid": "1000",
-            "gid": "1000",
-            "username": "coder",
-            "installZsh": false,
-            "upgradePackages": false
-        },
         "golang": "latest",
         "rust": {
             "version": "latest",
@@ -19,23 +12,21 @@
     "hostRequirements": {
         "gpu": true
     },
-    "workspaceFolder": "/home/coder/${localWorkspaceFolderBasename}",
-    "workspaceMount": "source=${localWorkspaceFolder},target=/home/coder/${localWorkspaceFolderBasename},type=bind",
+    "workspaceFolder": "/workspace/${localWorkspaceFolderBasename}",
+    "workspaceMount": "source=${localWorkspaceFolder},target=/workspace/${localWorkspaceFolderBasename},type=bind",
     "customizations": {
         "vscode": {
             "extensions": [
-				"ms-vscode.cpptools-extension-pack",
-				"ms-azuretools.vscode-docker",
-				"rust-lang.rust-analyzer",
-				"GitHub.copilot"
-			]
+                "ms-vscode.cpptools-extension-pack",
+                "ms-azuretools.vscode-docker",
+                "rust-lang.rust-analyzer",
+                "GitHub.copilot"
+            ]
         }
-    },
-    "remoteEnv": {
-        "CPATH": "/usr/local/cuda/include"
     },
     "runArgs": [
         "--gpus",
         "all"
-    ]
+    ],
+    "remoteUser": "root"
 }

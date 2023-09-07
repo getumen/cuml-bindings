@@ -1,6 +1,6 @@
 package rawcuml4go
 
-// #cgo LDFLAGS: -lcuml4c -lcuml++ -lcuml -lcumlprims
+// #cgo LDFLAGS: -L/opt/conda/lib -ltreelite -lcuml4c -lcuml++ -lcuml -lcumlprims_mg
 // #include <stdlib.h>
 // #include "cuml4c/fil.h"
 import "C"
@@ -77,34 +77,28 @@ func NewFILModel(
 
 // Predict returns the prediction result in device.
 func (m *FILModel) Predict(
-	x *DeviceVectorFloat,
+	x []float32,
 	numRow int,
 	outputClassProbability bool,
-	preds *DeviceVectorFloat,
-) (*DeviceVectorFloat, error) {
-
-	var err error
+	preds []float32,
+) ([]float32, error) {
 
 	if preds == nil {
-		var predSize int
+		var predsLen int
 		if outputClassProbability {
-			predSize = numRow * m.numClass
+			predsLen = numRow * m.numClass
 		} else {
-			predSize = numRow
+			predsLen = numRow
 		}
-
-		preds, err = NewDeviceVectorFloat(predSize)
-		if err != nil {
-			return nil, err
-		}
+		preds = make([]float32, predsLen)
 	}
 
 	ret := C.FILPredict(
 		m.pointer,
-		x.pointer,
+		(*C.float)(&x[0]),
 		(C.size_t)(numRow),
 		(C.bool)(outputClassProbability),
-		preds.pointer,
+		(*C.float)(&preds[0]),
 	)
 
 	if ret != 0 {

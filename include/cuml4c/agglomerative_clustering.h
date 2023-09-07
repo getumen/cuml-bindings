@@ -7,10 +7,8 @@
 #include <stdio.h>
 #endif
 
-#include "cuml4c/device_vector.h"
-
 EXTERN_C int AgglomerativeClusteringFit(
-    DeviceVectorHandleFloat device_x,
+    const float *x,
     size_t num_row,
     size_t num_col,
     bool pairwise_conn,
@@ -18,5 +16,5 @@ EXTERN_C int AgglomerativeClusteringFit(
     int n_neighbors,
     int init_n_clusters,
     int *n_clusters,
-    DeviceVectorHandleInt device_labels,
-    DeviceVectorHandleInt device_children);
+    int *labels,
+    int *children);

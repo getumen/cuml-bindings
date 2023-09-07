@@ -12,7 +12,7 @@ func TestFIL(t *testing.T) {
 
 	target, err := rawcuml4go.NewFILModel(
 		int(cuml4go.XGBoost),
-		"../testdata/xgboost.model",
+		"../../testdata/xgboost.model",
 		int(cuml4go.AlgoAuto),
 		true,
 		0.0,
@@ -25,27 +25,15 @@ func TestFIL(t *testing.T) {
 	nRow := 114
 	numClass := 2
 
-	features := csvToFloat32Array(t, "../testdata/feature.csv")
-	expectedScores := csvToFloat32Array(t, "../testdata/score-xgboost.csv")
+	features := csvToFloat32Array(t, "../../testdata/feature.csv")
+	expectedScores := csvToFloat32Array(t, "../../testdata/score-xgboost.csv")
 
-	dFeatire, err := rawcuml4go.NewDeviceVectorFloatFromData(features)
-	require.NoError(t, err)
-	defer dFeatire.Close()
-
-	size, err := dFeatire.GetSize()
-	require.NoError(t, err)
-
-	require.Equal(t, len(features), size)
-
-	actual, err := target.Predict(dFeatire, nRow, true, nil)
+	actual, err := target.Predict(features, nRow, true, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	actualSize, err := actual.GetSize()
-	require.NoError(t, err)
-
-	require.Equal(t, numClass*len(expectedScores), actualSize)
+	require.Equal(t, numClass*len(expectedScores), len(actual))
 
 	defer target.Close()
 }

@@ -1,18 +1,14 @@
-#include "cuda_utils.h"
-#include "handle_utils.h"
-#include "preprocessor.h"
-#include "stream_allocator.h"
-#include "device_vector_utils.h"
-#include "cuml4c/device_vector.h"
 #include "cuml4c/dbscan.h"
 
-#include <thrust/device_vector.h>
+#include <thrust/copy.h>
+#include <raft/core/handle.hpp>
+#include <rmm/device_uvector.hpp>
 #include <cuml/cluster/dbscan.hpp>
 
 #include <memory>
 
 __host__ int DbscanFit(
-    DeviceVectorHandleFloat device_x,
+    const float *x,
     size_t num_row,
     size_t num_col,
     int min_pts,
@@ -20,28 +16,42 @@ __host__ int DbscanFit(
     int metric,
     size_t max_bytes_per_batch,
     int verbosity,
-    DeviceVectorHandleInt device_labels)
+    int *labels)
 {
+    auto handle = std::make_unique<raft::handle_t>();
 
-    auto d_x = static_cast<cuml4c::DeviceVector<float> *>(device_x);
-    auto d_labels = static_cast<cuml4c::DeviceVector<int> *>(device_labels);
+    auto d_x = rmm::device_uvector<float>(
+        num_col * num_row,
+        handle->get_stream());
 
-    auto stream_view = cuml4c::stream_allocator::getOrCreateStream();
-    raft::handle_t handle;
-    cuml4c::handle_utils::initializeHandle(handle, stream_view.value());
+    raft::update_device(d_x.data(),
+                        x,
+                        num_col * num_row,
+                        handle->get_stream());
 
-    ML::Dbscan::fit(handle,
-                    /*input=*/d_x->vector->data().get(),
+    auto d_labels = rmm::device_uvector<int>(
+        num_row,
+        handle->get_stream());
+
+    ML::Dbscan::fit(*handle,
+                    /*input=*/d_x.begin(),
                     /*n_rows=*/num_row,
                     /*n_cols=*/num_col,
                     eps,
                     min_pts,
                     /*metric=*/static_cast<raft::distance::DistanceType>(metric),
-                    /*labels=*/d_labels->vector->data().get(),
+                    /*labels=*/d_labels.begin(),
                     /*core_sample_indices=*/nullptr,
                     max_bytes_per_batch,
                     /*verbosity=*/verbosity,
                     /*opg=*/false);
+
+    raft::update_host(labels,
+                      d_labels.begin(),
+                      d_labels.size(),
+                      handle->get_stream());
+
+    handle->get_stream().synchronize();
 
     return 0;
 }

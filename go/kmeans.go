@@ -61,25 +61,11 @@ func (k *Kmeans) Fit(
 	nIter int32,
 	err error,
 ) {
-	dX, err := rawcuml4go.NewDeviceVectorFloatFromData(x)
 
-	if err != nil {
-		return
-	}
-
-	var dSampleWeight *rawcuml4go.DeviceVectorFloat
-	if sampleWeight != nil {
-		dSampleWeight, err = rawcuml4go.NewDeviceVectorFloatFromData(sampleWeight)
-		if err != nil {
-			return
-		}
-	}
-
-	dLabels, dCentroids, inertia, nIter, err := rawcuml4go.Kmeans(
-		dX,
+	labels, centroids, inertia, nIter, err = rawcuml4go.Kmeans(
+		x,
 		numRow,
 		numCol,
-		dSampleWeight,
 		k.k,
 		k.maxIter,
 		k.tol,
@@ -92,18 +78,6 @@ func (k *Kmeans) Fit(
 	)
 	if err != nil {
 		err = ErrKmeans
-	}
-	defer dLabels.Close()
-	defer dCentroids.Close()
-
-	labels, err = dLabels.ToHost()
-	if err != nil {
-		return
-	}
-
-	centroids, err = dCentroids.ToHost()
-	if err != nil {
-		return
 	}
 
 	return
