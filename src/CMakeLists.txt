@@ -1,6 +1,6 @@
-add_library(objcuml4c OBJECT)
+cmake_minimum_required(VERSION 3.26.4 FATAL_ERROR)
 
-set(CUML_VERSION v21.08.00)
+add_library(objcuml4c OBJECT)
 
 find_package(CUDA REQUIRED)
 
@@ -18,12 +18,11 @@ if(CUDA_FOUND)
 
     target_link_libraries(objcuml4c PRIVATE 
         ${CUDA_LIBRARIES} 
-        Thrust 
-        rmm 
-        treelite 
+        treelite
+        fmt
         cuml 
         cuml++ 
-        cumlprims)
+        cumlprims_mg)
 
     target_include_directories(objcuml4c PUBLIC 
         ${PROJECT_SOURCE_DIR}/include
@@ -32,23 +31,10 @@ if(CUDA_FOUND)
 
     target_sources(objcuml4c PRIVATE
         agglomerative_clustering.cu
-        cuda_utils.cu
-        cuda_utils.h
         dbscan.cu
-        device_allocator.cu
-        device_allocator.h
-        device_vector.cu
-        device_vector_utils.h
-        fil_utils.cu
-        fil_utils.h
         fil.cu
-        handle_utils.cu
-        handle_utils.h
         kmeans.cu
-        preprocessor.h
-        stream_allocator.cu
-        stream_allocator.h
-        treelite_utils.cuh
+        memory_resource.cu
     )
 
 endif()

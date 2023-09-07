@@ -4,13 +4,7 @@ use anyhow::{anyhow, Context};
 
 use crate::errors::CumlError;
 
-use super::{
-    bindings::{
-        DeviceVectorHandleFloat, FILFreeModel, FILGetNumClasses, FILLoadModel, FILModelHandle,
-        FILPredict,
-    },
-    device_vector::DeviceVectorFloat,
-};
+use super::bindings::{FILFreeModel, FILGetNumClasses, FILLoadModel, FILModelHandle, FILPredict};
 
 pub fn fil_load_model<P: AsRef<Path>>(
     model_type: i32,
@@ -57,18 +51,18 @@ pub fn fil_free_model(model: FILModelHandle) -> Result<(), CumlError> {
 
 pub fn fil_predict(
     model: FILModelHandle,
-    data: &DeviceVectorFloat,
+    data: &[f32],
     num_row: usize,
     output_class_probabilities: bool,
-    preds: &mut DeviceVectorFloat,
+    preds: &mut [f32],
 ) -> Result<(), CumlError> {
     let result = unsafe {
         FILPredict(
             model,
-            data.as_ptr() as DeviceVectorHandleFloat,
+            data.as_ptr() as *const f32,
             num_row,
             output_class_probabilities,
-            preds.as_mut_ptr() as DeviceVectorHandleFloat,
+            preds.as_mut_ptr() as *mut f32,
         )
     };
     if result != 0 {

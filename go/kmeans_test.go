@@ -10,7 +10,7 @@ import (
 
 func TestKmeans(t *testing.T) {
 
-	features := csvToFloat32Array(t, "testdata/feature.csv")
+	features := csvToFloat32Array(t, "../testdata/feature.csv")
 	featureCol := 30
 	featureRow := 114
 	k := 3

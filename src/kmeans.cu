@@ -1,22 +1,16 @@
-#include "cuda_utils.h"
-#include "handle_utils.h"
-#include "preprocessor.h"
-#include "stream_allocator.h"
-#include "device_vector_utils.h"
-#include "cuml4c/device_vector.h"
 #include "cuml4c/kmeans.h"
 
-#include <thrust/device_vector.h>
+#include <thrust/copy.h>
+#include <raft/core/handle.hpp>
+#include <rmm/device_uvector.hpp>
 #include <cuml/cluster/kmeans.hpp>
 
 #include <memory>
 
-// TODO: support initMethod == Array
 __host__ int KmeansFit(
-    DeviceVectorHandleFloat device_x,
+    const float *x,
     int num_row,
     int num_col,
-    DeviceVectorHandleFloat device_sample_weight,
     int k,
     int max_iters,
     double tol,
@@ -24,16 +18,30 @@ __host__ int KmeansFit(
     int metric,
     int seed,
     int verbosity,
-    DeviceVectorHandleInt device_labels,
-    DeviceVectorHandleFloat device_centroids,
+    int *labels,
+    float *centroids,
     float *inertia,
     int *n_iter)
 {
 
-    auto d_x = static_cast<cuml4c::DeviceVector<float> *>(device_x);
-    auto d_sample_weight = static_cast<cuml4c::DeviceVector<float> *>(device_sample_weight);
-    auto d_labels = static_cast<cuml4c::DeviceVector<int> *>(device_labels);
-    auto d_centroids = static_cast<cuml4c::DeviceVector<float> *>(device_centroids);
+    auto handle = std::make_shared<raft::handle_t>();
+
+    auto d_x = rmm::device_uvector<float>(
+        num_col * num_row,
+        handle->get_stream());
+
+    raft::update_device(d_x.data(),
+                        x,
+                        num_col * num_row,
+                        handle->get_stream());
+
+    auto d_labels = rmm::device_uvector<int>(
+        num_row,
+        handle->get_stream());
+
+    auto d_centroids = rmm::device_uvector<float>(
+        k * num_col,
+        handle->get_stream());
 
     ML::kmeans::KMeansParams params;
     params.n_clusters = k;
@@ -45,43 +53,32 @@ __host__ int KmeansFit(
     }
 
     params.init = static_cast<ML::kmeans::KMeansParams::InitMethod>(init_method);
-    params.seed = seed;
     params.verbosity = verbosity;
-    params.metric = metric;
+    params.metric = static_cast<raft::distance::DistanceType>(metric);
 
-    auto stream_view = cuml4c::stream_allocator::getOrCreateStream();
-    raft::handle_t handle;
-    cuml4c::handle_utils::initializeHandle(handle, stream_view.value());
+    ML::kmeans::fit_predict(
+        *handle,
+        params,
+        d_x.begin(),
+        num_row,
+        num_col,
+        nullptr,
+        d_centroids.begin(),
+        d_labels.begin(),
+        *inertia,
+        *n_iter);
 
-    if (device_sample_weight == nullptr)
-    {
-        ML::kmeans::fit_predict(
-            handle,
-            params,
-            d_x->vector->data().get(),
-            num_row,
-            num_col,
-            nullptr,
-            d_centroids->vector->data().get(),
-            d_labels->vector->data().get(),
-            *inertia,
-            *n_iter);
-    }
-    else
-    {
+    raft::update_host(labels,
+                      d_labels.begin(),
+                      d_labels.size(),
+                      handle->get_stream());
 
-        ML::kmeans::fit_predict(
-            handle,
-            params,
-            d_x->vector->data().get(),
-            num_row,
-            num_col,
-            d_sample_weight->vector->data().get(),
-            d_centroids->vector->data().get(),
-            d_labels->vector->data().get(),
-            *inertia,
-            *n_iter);
-    }
+    raft::update_host(centroids,
+                      d_centroids.begin(),
+                      d_centroids.size(),
+                      handle->get_stream());
+
+    handle->get_stream().synchronize();
 
     return 0;
 }

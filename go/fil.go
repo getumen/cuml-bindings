@@ -122,19 +122,12 @@ func (m *FILModel) Predict(
 	x []float32,
 	numRow int,
 	outputClassProbability bool) ([]float32, error) {
-	dX, err := rawcuml4go.NewDeviceVectorFloatFromData(x)
 
+	preds, err := m.raw.Predict(x, numRow, outputClassProbability, nil)
 	if err != nil {
 		return nil, err
 	}
-
-	dPreds, err := m.raw.Predict(dX, numRow, outputClassProbability, nil)
-	if err != nil {
-		return nil, err
-	}
-	defer dPreds.Close()
-
-	return dPreds.ToHost()
+	return preds, nil
 }
 
 // PredictSingleClassScore returns the prediction result of the 1 class of {0,1} classification.

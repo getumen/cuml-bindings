@@ -42,6 +42,14 @@ RUN wget https://github.com/Kitware/CMake/releases/download/v3.27.3/cmake-3.27.3
     && cd .. \
     && rm -r cmake-3.27.3 cmake-3.27.3.tar.gz
 
+RUN git clone https://github.com/dmlc/treelite.git -b 3.2.0 \
+    && cd treelite \
+    && mkdir build && cd build \
+    && cmake .. \
+    && make install -j$(nproc) \
+    && cd ../.. \
+    && rm -r treelite
+
 # install ucx
 RUN git clone --recursive https://github.com/openucx/ucx.git \
     && cd ucx \

@@ -22,6 +22,10 @@ pub const __USE_POSIX199506: u32 = 1;
 pub const __USE_XOPEN2K: u32 = 1;
 pub const __USE_XOPEN2K8: u32 = 1;
 pub const _ATFILE_SOURCE: u32 = 1;
+pub const __WORDSIZE: u32 = 64;
+pub const __WORDSIZE_TIME64_COMPAT32: u32 = 1;
+pub const __SYSCALL_WORDSIZE: u32 = 64;
+pub const __TIMESIZE: u32 = 64;
 pub const __USE_MISC: u32 = 1;
 pub const __USE_ATFILE: u32 = 1;
 pub const __USE_FORTIFY_LEVEL: u32 = 0;
@@ -29,32 +33,32 @@ pub const __GLIBC_USE_DEPRECATED_GETS: u32 = 0;
 pub const __GLIBC_USE_DEPRECATED_SCANF: u32 = 0;
 pub const _STDC_PREDEF_H: u32 = 1;
 pub const __STDC_IEC_559__: u32 = 1;
+pub const __STDC_IEC_60559_BFP__: u32 = 201404;
 pub const __STDC_IEC_559_COMPLEX__: u32 = 1;
+pub const __STDC_IEC_60559_COMPLEX__: u32 = 201404;
 pub const __STDC_ISO_10646__: u32 = 201706;
 pub const __GNU_LIBRARY__: u32 = 6;
 pub const __GLIBC__: u32 = 2;
-pub const __GLIBC_MINOR__: u32 = 31;
+pub const __GLIBC_MINOR__: u32 = 35;
 pub const _SYS_CDEFS_H: u32 = 1;
 pub const __glibc_c99_flexarr_available: u32 = 1;
-pub const __WORDSIZE: u32 = 64;
-pub const __WORDSIZE_TIME64_COMPAT32: u32 = 1;
-pub const __SYSCALL_WORDSIZE: u32 = 64;
-pub const __LONG_DOUBLE_USES_FLOAT128: u32 = 0;
+pub const __LDOUBLE_REDIRECTS_TO_FLOAT128_ABI: u32 = 0;
 pub const __HAVE_GENERIC_SELECTION: u32 = 1;
 pub const __GLIBC_USE_LIB_EXT2: u32 = 0;
 pub const __GLIBC_USE_IEC_60559_BFP_EXT: u32 = 0;
 pub const __GLIBC_USE_IEC_60559_BFP_EXT_C2X: u32 = 0;
+pub const __GLIBC_USE_IEC_60559_EXT: u32 = 0;
 pub const __GLIBC_USE_IEC_60559_FUNCS_EXT: u32 = 0;
 pub const __GLIBC_USE_IEC_60559_FUNCS_EXT_C2X: u32 = 0;
 pub const __GLIBC_USE_IEC_60559_TYPES_EXT: u32 = 0;
 pub const __GNUC_VA_LIST: u32 = 1;
 pub const _BITS_TYPES_H: u32 = 1;
-pub const __TIMESIZE: u32 = 64;
 pub const _BITS_TYPESIZES_H: u32 = 1;
 pub const __OFF_T_MATCHES_OFF64_T: u32 = 1;
 pub const __INO_T_MATCHES_INO64_T: u32 = 1;
 pub const __RLIM_T_MATCHES_RLIM64_T: u32 = 1;
 pub const __STATFS_MATCHES_STATFS64: u32 = 1;
+pub const __KERNEL_OLD_TIMEVAL_MATCHES_TIMEVAL64: u32 = 1;
 pub const __FD_SETSIZE: u32 = 1024;
 pub const _BITS_TIME64_H: u32 = 1;
 pub const _____fpos_t_defined: u32 = 1;
@@ -81,6 +85,63 @@ pub const TMP_MAX: u32 = 238328;
 pub const FILENAME_MAX: u32 = 4096;
 pub const L_ctermid: u32 = 9;
 pub const FOPEN_MAX: u32 = 16;
+pub const __HAVE_FLOAT128: u32 = 0;
+pub const __HAVE_DISTINCT_FLOAT128: u32 = 0;
+pub const __HAVE_FLOAT64X: u32 = 1;
+pub const __HAVE_FLOAT64X_LONG_DOUBLE: u32 = 1;
+pub const __HAVE_FLOAT16: u32 = 0;
+pub const __HAVE_FLOAT32: u32 = 1;
+pub const __HAVE_FLOAT64: u32 = 1;
+pub const __HAVE_FLOAT32X: u32 = 1;
+pub const __HAVE_FLOAT128X: u32 = 0;
+pub const __HAVE_DISTINCT_FLOAT16: u32 = 0;
+pub const __HAVE_DISTINCT_FLOAT32: u32 = 0;
+pub const __HAVE_DISTINCT_FLOAT64: u32 = 0;
+pub const __HAVE_DISTINCT_FLOAT32X: u32 = 0;
+pub const __HAVE_DISTINCT_FLOAT64X: u32 = 0;
+pub const __HAVE_DISTINCT_FLOAT128X: u32 = 0;
+pub const __HAVE_FLOATN_NOT_TYPEDEF: u32 = 0;
+pub const _STDINT_H: u32 = 1;
+pub const _BITS_WCHAR_H: u32 = 1;
+pub const _BITS_STDINT_INTN_H: u32 = 1;
+pub const _BITS_STDINT_UINTN_H: u32 = 1;
+pub const INT8_MIN: i32 = -128;
+pub const INT16_MIN: i32 = -32768;
+pub const INT32_MIN: i32 = -2147483648;
+pub const INT8_MAX: u32 = 127;
+pub const INT16_MAX: u32 = 32767;
+pub const INT32_MAX: u32 = 2147483647;
+pub const UINT8_MAX: u32 = 255;
+pub const UINT16_MAX: u32 = 65535;
+pub const UINT32_MAX: u32 = 4294967295;
+pub const INT_LEAST8_MIN: i32 = -128;
+pub const INT_LEAST16_MIN: i32 = -32768;
+pub const INT_LEAST32_MIN: i32 = -2147483648;
+pub const INT_LEAST8_MAX: u32 = 127;
+pub const INT_LEAST16_MAX: u32 = 32767;
+pub const INT_LEAST32_MAX: u32 = 2147483647;
+pub const UINT_LEAST8_MAX: u32 = 255;
+pub const UINT_LEAST16_MAX: u32 = 65535;
+pub const UINT_LEAST32_MAX: u32 = 4294967295;
+pub const INT_FAST8_MIN: i32 = -128;
+pub const INT_FAST16_MIN: i64 = -9223372036854775808;
+pub const INT_FAST32_MIN: i64 = -9223372036854775808;
+pub const INT_FAST8_MAX: u32 = 127;
+pub const INT_FAST16_MAX: u64 = 9223372036854775807;
+pub const INT_FAST32_MAX: u64 = 9223372036854775807;
+pub const UINT_FAST8_MAX: u32 = 255;
+pub const UINT_FAST16_MAX: i32 = -1;
+pub const UINT_FAST32_MAX: i32 = -1;
+pub const INTPTR_MIN: i64 = -9223372036854775808;
+pub const INTPTR_MAX: u64 = 9223372036854775807;
+pub const UINTPTR_MAX: i32 = -1;
+pub const PTRDIFF_MIN: i64 = -9223372036854775808;
+pub const PTRDIFF_MAX: u64 = 9223372036854775807;
+pub const SIG_ATOMIC_MIN: i32 = -2147483648;
+pub const SIG_ATOMIC_MAX: u32 = 2147483647;
+pub const SIZE_MAX: i32 = -1;
+pub const WINT_MIN: u32 = 0;
+pub const WINT_MAX: u32 = 4294967295;
 pub type va_list = __builtin_va_list;
 pub type __gnuc_va_list = __builtin_va_list;
 pub type __u_char = ::std::os::raw::c_uchar;
@@ -154,6 +215,7 @@ pub type __id_t = ::std::os::raw::c_uint;
 pub type __time_t = ::std::os::raw::c_long;
 pub type __useconds_t = ::std::os::raw::c_uint;
 pub type __suseconds_t = ::std::os::raw::c_long;
+pub type __suseconds64_t = ::std::os::raw::c_long;
 pub type __daddr_t = ::std::os::raw::c_int;
 pub type __key_t = ::std::os::raw::c_int;
 pub type __clockid_t = ::std::os::raw::c_int;
@@ -726,10 +788,13 @@ extern "C" {
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
+    pub fn fclose(__stream: *mut FILE) -> ::std::os::raw::c_int;
+}
+extern "C" {
     pub fn tmpfile() -> *mut FILE;
 }
 extern "C" {
-    pub fn tmpnam(__s: *mut ::std::os::raw::c_char) -> *mut ::std::os::raw::c_char;
+    pub fn tmpnam(arg1: *mut ::std::os::raw::c_char) -> *mut ::std::os::raw::c_char;
 }
 extern "C" {
     pub fn tmpnam_r(__s: *mut ::std::os::raw::c_char) -> *mut ::std::os::raw::c_char;
@@ -739,9 +804,6 @@ extern "C" {
         __dir: *const ::std::os::raw::c_char,
         __pfx: *const ::std::os::raw::c_char,
     ) -> *mut ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn fclose(__stream: *mut FILE) -> ::std::os::raw::c_int;
 }
 extern "C" {
     pub fn fflush(__stream: *mut FILE) -> ::std::os::raw::c_int;
@@ -880,6 +942,10 @@ extern "C" {
         ...
     ) -> ::std::os::raw::c_int;
 }
+pub type _Float32 = f32;
+pub type _Float64 = f64;
+pub type _Float32x = f64;
+pub type _Float64x = u128;
 extern "C" {
     #[link_name = "\u{1}__isoc99_fscanf"]
     pub fn fscanf1(
@@ -1108,25 +1174,19 @@ extern "C" {
     pub fn perror(__s: *const ::std::os::raw::c_char);
 }
 extern "C" {
-    pub static mut sys_nerr: ::std::os::raw::c_int;
-}
-extern "C" {
-    pub static sys_errlist: [*const ::std::os::raw::c_char; 0usize];
-}
-extern "C" {
     pub fn fileno(__stream: *mut FILE) -> ::std::os::raw::c_int;
 }
 extern "C" {
     pub fn fileno_unlocked(__stream: *mut FILE) -> ::std::os::raw::c_int;
 }
 extern "C" {
+    pub fn pclose(__stream: *mut FILE) -> ::std::os::raw::c_int;
+}
+extern "C" {
     pub fn popen(
         __command: *const ::std::os::raw::c_char,
         __modes: *const ::std::os::raw::c_char,
     ) -> *mut FILE;
-}
-extern "C" {
-    pub fn pclose(__stream: *mut FILE) -> ::std::os::raw::c_int;
 }
 extern "C" {
     pub fn ctermid(__s: *mut ::std::os::raw::c_char) -> *mut ::std::os::raw::c_char;
@@ -1146,67 +1206,9 @@ extern "C" {
 extern "C" {
     pub fn __overflow(arg1: *mut FILE, arg2: ::std::os::raw::c_int) -> ::std::os::raw::c_int;
 }
-pub type DeviceVectorHandleFloat = *mut ::std::os::raw::c_void;
-pub type DeviceVectorHandleInt = *mut ::std::os::raw::c_void;
-extern "C" {
-    pub fn DeviceVectorFloatCreate(
-        size: usize,
-        out: *mut DeviceVectorHandleFloat,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn DeviceVectorToHostVectorFloat(
-        device: DeviceVectorHandleFloat,
-        out: *mut f32,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn HostVectorToDeviceVectorFloat(
-        host: *const f32,
-        size: usize,
-        out: *mut DeviceVectorHandleFloat,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn DeviceVectorFloatGetSize(
-        device: DeviceVectorHandleFloat,
-        out: *mut usize,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn DeviceVectorFloatFree(device: DeviceVectorHandleFloat) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn DeviceVectorIntCreate(
-        size: usize,
-        out: *mut DeviceVectorHandleInt,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn DeviceVectorToHostVectorInt(
-        device: DeviceVectorHandleInt,
-        out: *mut ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn HostVectorToDeviceVectorInt(
-        host: *const ::std::os::raw::c_int,
-        size: usize,
-        out: *mut DeviceVectorHandleInt,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn DeviceVectorIntGetSize(
-        device: DeviceVectorHandleInt,
-        out: *mut usize,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn DeviceVectorIntFree(device: DeviceVectorHandleInt) -> ::std::os::raw::c_int;
-}
 extern "C" {
     pub fn AgglomerativeClusteringFit(
-        device_x: DeviceVectorHandleFloat,
+        x: *const f32,
         num_row: usize,
         num_col: usize,
         pairwise_conn: bool,
@@ -1214,13 +1216,13 @@ extern "C" {
         n_neighbors: ::std::os::raw::c_int,
         init_n_clusters: ::std::os::raw::c_int,
         n_clusters: *mut ::std::os::raw::c_int,
-        device_labels: DeviceVectorHandleInt,
-        device_children: DeviceVectorHandleInt,
+        labels: *mut ::std::os::raw::c_int,
+        children: *mut ::std::os::raw::c_int,
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
     pub fn DbscanFit(
-        device_x: DeviceVectorHandleFloat,
+        x: *const f32,
         num_row: usize,
         num_col: usize,
         min_pts: ::std::os::raw::c_int,
@@ -1228,10 +1230,17 @@ extern "C" {
         metric: ::std::os::raw::c_int,
         max_bytes_per_batch: usize,
         verbosity: ::std::os::raw::c_int,
-        device_labels: DeviceVectorHandleInt,
+        labels: *mut ::std::os::raw::c_int,
     ) -> ::std::os::raw::c_int;
 }
 pub type FILModelHandle = *mut ::std::os::raw::c_void;
+pub const FILStatus_FIL_SUCCESS: FILStatus = 0;
+pub const FILStatus_FIL_FAIL_TO_LOAD_MODEL: FILStatus = 1;
+pub const FILStatus_FIL_FAIL_TO_GET_NUM_CLASS: FILStatus = 2;
+pub const FILStatus_FIL_FAIL_TO_GET_NUM_FEATURE: FILStatus = 3;
+pub const FILStatus_FIL_INVALID_ARGUMENT: FILStatus = 4;
+pub const FILStatus_FIL_FAIL_TO_FREE_MODEL: FILStatus = 5;
+pub type FILStatus = ::std::os::raw::c_uint;
 extern "C" {
     pub fn FILLoadModel(
         model_type: ::std::os::raw::c_int,
@@ -1247,7 +1256,7 @@ extern "C" {
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    pub fn FILFreeModel(handle: FILModelHandle) -> ::std::os::raw::c_int;
+    pub fn FILFreeModel(model: FILModelHandle) -> ::std::os::raw::c_int;
 }
 extern "C" {
     pub fn FILGetNumClasses(model: FILModelHandle, out: *mut usize) -> ::std::os::raw::c_int;
@@ -1255,18 +1264,17 @@ extern "C" {
 extern "C" {
     pub fn FILPredict(
         model: FILModelHandle,
-        device_x: DeviceVectorHandleFloat,
+        x: *const f32,
         num_row: usize,
         output_class_probabilities: bool,
-        device_preds: DeviceVectorHandleFloat,
+        preds: *mut f32,
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
     pub fn KmeansFit(
-        device_x: DeviceVectorHandleFloat,
+        x: *const f32,
         num_row: ::std::os::raw::c_int,
         num_col: ::std::os::raw::c_int,
-        device_sample_weight: DeviceVectorHandleFloat,
         k: ::std::os::raw::c_int,
         max_iters: ::std::os::raw::c_int,
         tol: f64,
@@ -1274,10 +1282,52 @@ extern "C" {
         metric: ::std::os::raw::c_int,
         seed: ::std::os::raw::c_int,
         verbosity: ::std::os::raw::c_int,
-        device_labels: DeviceVectorHandleInt,
-        device_centroids: DeviceVectorHandleFloat,
+        labels: *mut ::std::os::raw::c_int,
+        centroids: *mut f32,
         inertia: *mut f32,
         n_iter: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+pub type int_least8_t = __int_least8_t;
+pub type int_least16_t = __int_least16_t;
+pub type int_least32_t = __int_least32_t;
+pub type int_least64_t = __int_least64_t;
+pub type uint_least8_t = __uint_least8_t;
+pub type uint_least16_t = __uint_least16_t;
+pub type uint_least32_t = __uint_least32_t;
+pub type uint_least64_t = __uint_least64_t;
+pub type int_fast8_t = ::std::os::raw::c_schar;
+pub type int_fast16_t = ::std::os::raw::c_long;
+pub type int_fast32_t = ::std::os::raw::c_long;
+pub type int_fast64_t = ::std::os::raw::c_long;
+pub type uint_fast8_t = ::std::os::raw::c_uchar;
+pub type uint_fast16_t = ::std::os::raw::c_ulong;
+pub type uint_fast32_t = ::std::os::raw::c_ulong;
+pub type uint_fast64_t = ::std::os::raw::c_ulong;
+pub type intmax_t = __intmax_t;
+pub type uintmax_t = __uintmax_t;
+pub type DeviceMemoryResource = *mut ::std::os::raw::c_void;
+extern "C" {
+    pub fn UsePoolMemoryResource(
+        initial_pool_size: usize,
+        maximum_pool_size: usize,
+        resource: *mut DeviceMemoryResource,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn UseBinningMemoryResource(
+        min_size_exponent: i8,
+        max_size_exponent: i8,
+        resource: *mut DeviceMemoryResource,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn UseArenaMemoryResource(resource: *mut DeviceMemoryResource) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn ResetMemoryResource(
+        resource: DeviceMemoryResource,
+        resource_type: ::std::os::raw::c_int,
     ) -> ::std::os::raw::c_int;
 }
 pub type __builtin_va_list = [__va_list_tag; 1usize];

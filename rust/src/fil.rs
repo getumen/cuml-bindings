@@ -1,10 +1,10 @@
+use core::num;
 use std::path::Path;
 
 use crate::{
     errors::CumlError,
     sys::{
         bindings::FILModelHandle,
-        device_vector::DeviceVectorFloat,
         fil::{fil_free_model, fil_get_num_class, fil_load_model, fil_predict},
     },
 };
@@ -85,22 +85,22 @@ impl Model {
         num_row: usize,
         output_class_probabilities: bool,
     ) -> Result<Vec<f32>, CumlError> {
-        let d_data = DeviceVectorFloat::from_slice(data)?;
-        let mut d_preds = DeviceVectorFloat::new(if output_class_probabilities {
-            num_row * fil_get_num_class(self.model)?
+        let mut preds = if output_class_probabilities {
+            let num_class = fil_get_num_class(self.model)?;
+            vec![0f32; num_row * num_class]
         } else {
-            num_row
-        })?;
+            vec![0f32; num_row]
+        };
 
         fil_predict(
             self.model,
-            &d_data,
+            &data,
             num_row,
             output_class_probabilities,
-            &mut d_preds,
+            &mut preds,
         )?;
 
-        d_preds.to_host()
+        Ok(preds)
     }
 }
 

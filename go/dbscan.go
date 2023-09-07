@@ -40,14 +40,8 @@ func (d *DBScan) Fit(
 	numCol int,
 ) ([]int32, error) {
 
-	dX, err := rawcuml4go.NewDeviceVectorFloatFromData(x)
-	if err != nil {
-		return nil, err
-	}
-	defer dX.Close()
-
-	dLabels, err := rawcuml4go.DBScan(
-		dX,
+	labels, err := rawcuml4go.DBScan(
+		x,
 		numRow,
 		numCol,
 		d.minPts,
@@ -60,13 +54,10 @@ func (d *DBScan) Fit(
 	if err != nil {
 		return nil, err
 	}
-	defer dLabels.Close()
-
-	result, err := dLabels.ToHost()
 
 	if err != nil {
 		return nil, err
 	}
 
-	return result, nil
+	return labels, nil
 }

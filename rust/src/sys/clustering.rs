@@ -2,30 +2,24 @@ use anyhow::anyhow;
 
 use crate::errors::CumlError;
 
-use super::{
-    bindings::{
-        AgglomerativeClusteringFit, DbscanFit, DeviceVectorHandleFloat, DeviceVectorHandleInt,
-        KmeansFit,
-    },
-    device_vector::{DeviceVectorFloat, DeviceVectorInt},
-};
+use super::bindings::{AgglomerativeClusteringFit, DbscanFit, KmeansFit};
 
 pub fn agglomerative_clustering(
-    data: &DeviceVectorFloat,
+    data: &[f32],
     num_row: usize,
     num_col: usize,
     pairwise_conn: bool,
     metric: i32,
     n_neighbors: i32,
     init_n_clusters: i32,
-    labels: &mut DeviceVectorInt,
-    children: &mut DeviceVectorInt,
+    labels: &mut [i32],
+    children: &mut [i32],
 ) -> Result<i32, CumlError> {
     let mut num_cluster = 0i32;
 
     let result = unsafe {
         AgglomerativeClusteringFit(
-            data.as_ptr() as DeviceVectorHandleFloat,
+            data.as_ptr() as *const f32,
             num_row,
             num_col,
             pairwise_conn,
@@ -33,8 +27,8 @@ pub fn agglomerative_clustering(
             n_neighbors,
             init_n_clusters,
             &mut num_cluster,
-            labels.as_mut_ptr() as DeviceVectorHandleInt,
-            children.as_mut_ptr() as DeviceVectorHandleInt,
+            labels.as_mut_ptr() as *mut i32,
+            children.as_mut_ptr() as *mut i32,
         )
     };
 
@@ -46,7 +40,7 @@ pub fn agglomerative_clustering(
 }
 
 pub fn dbscan(
-    data: &DeviceVectorFloat,
+    data: &[f32],
     num_row: usize,
     num_col: usize,
     min_pts: i32,
@@ -54,11 +48,11 @@ pub fn dbscan(
     metric: i32,
     max_bytes_per_batch: usize,
     verbosity: i32,
-    labels: &mut DeviceVectorInt,
+    labels: &mut [i32],
 ) -> Result<(), CumlError> {
     let result = unsafe {
         DbscanFit(
-            data.as_ptr() as DeviceVectorHandleFloat,
+            data.as_ptr() as *const f32,
             num_row,
             num_col,
             min_pts,
@@ -66,7 +60,7 @@ pub fn dbscan(
             metric,
             max_bytes_per_batch,
             verbosity,
-            labels.as_mut_ptr() as DeviceVectorHandleInt,
+            labels.as_mut_ptr() as *mut i32,
         )
     };
 
@@ -78,10 +72,9 @@ pub fn dbscan(
 }
 
 pub fn kmeans(
-    data: &DeviceVectorFloat,
+    data: &[f32],
     num_row: usize,
     num_col: usize,
-    sample_weight: Option<&DeviceVectorFloat>,
     k: i32,
     max_iter: i32,
     tol: f64,
@@ -89,8 +82,8 @@ pub fn kmeans(
     metric: i32,
     seed: i32,
     verbosity: i32,
-    labels: &mut DeviceVectorInt,
-    centroids: &mut DeviceVectorFloat,
+    labels: &mut [i32],
+    centroids: &mut [f32],
 ) -> Result<(f32, i32), CumlError> {
     let mut inertia = 0f32;
     let mut n_iter = 0i32;
@@ -100,12 +93,9 @@ pub fn kmeans(
 
     let result = unsafe {
         KmeansFit(
-            data.as_ptr() as DeviceVectorHandleFloat,
+            data.as_ptr() as *const f32,
             num_row,
             num_col,
-            sample_weight.map_or(std::ptr::null_mut(), |x| {
-                x.as_ptr() as DeviceVectorHandleFloat
-            }),
             k,
             max_iter,
             tol,
@@ -113,8 +103,8 @@ pub fn kmeans(
             metric,
             seed,
             verbosity,
-            labels.as_mut_ptr() as DeviceVectorHandleInt,
-            centroids.as_mut_ptr() as DeviceVectorHandleFloat,
+            labels.as_mut_ptr() as *mut i32,
+            centroids.as_mut_ptr() as *mut f32,
             &mut inertia,
             &mut n_iter,
         )

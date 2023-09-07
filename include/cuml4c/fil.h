@@ -7,9 +7,17 @@
 #include <stdio.h>
 #endif
 
-#include "cuml4c/device_vector.h"
-
 typedef void *FILModelHandle;
+
+enum FILStatus
+{
+    FIL_SUCCESS = 0,
+    FIL_FAIL_TO_LOAD_MODEL = 1,
+    FIL_FAIL_TO_GET_NUM_CLASS = 2,
+    FIL_FAIL_TO_GET_NUM_FEATURE = 3,
+    FIL_INVALID_ARGUMENT = 4,
+    FIL_FAIL_TO_FREE_MODEL = 5,
+};
 
 EXTERN_C int FILLoadModel(
     int model_type,
@@ -24,7 +32,7 @@ EXTERN_C int FILLoadModel(
     FILModelHandle *out);
 
 EXTERN_C int FILFreeModel(
-    FILModelHandle handle);
+    FILModelHandle model);
 
 EXTERN_C int FILGetNumClasses(
     FILModelHandle model,
@@ -32,7 +40,7 @@ EXTERN_C int FILGetNumClasses(
 
 EXTERN_C int FILPredict(
     FILModelHandle model,
-    DeviceVectorHandleFloat device_x,
+    const float *x,
     size_t num_row,
     bool output_class_probabilities,
-    DeviceVectorHandleFloat device_preds);
+    float *preds);

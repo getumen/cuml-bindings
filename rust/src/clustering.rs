@@ -1,12 +1,4 @@
-use crate::{
-    errors::CumlError,
-    log_level::LogLevel,
-    metric::Metric,
-    sys::{
-        clustering,
-        device_vector::{DeviceVectorFloat, DeviceVectorInt},
-    },
-};
+use crate::{errors::CumlError, log_level::LogLevel, metric::Metric, sys::clustering};
 
 pub struct AgglomerativeClusteringResult {
     num_cluster: i32,
@@ -56,25 +48,24 @@ impl AgglomerativeClustering {
         num_row: usize,
         num_col: usize,
     ) -> Result<AgglomerativeClusteringResult, CumlError> {
-        let d_data = DeviceVectorFloat::from_slice(data)?;
-        let mut d_labels = DeviceVectorInt::new(num_row)?;
-        let mut d_children = DeviceVectorInt::new(2 * (num_row - 1))?;
+        let mut labels = vec![0; num_row];
+        let mut children = vec![0; 2 * (num_row - 1)];
         let num_cluster = clustering::agglomerative_clustering(
-            &d_data,
+            &data,
             num_row,
             num_col,
             self.pairwise_conn,
             self.metric as i32,
             self.n_neighbors,
             self.init_n_clusters,
-            &mut d_labels,
-            &mut d_children,
+            &mut labels,
+            &mut children,
         )?;
 
         Ok(AgglomerativeClusteringResult {
             num_cluster,
-            labels: d_labels.to_host()?,
-            children: d_children.to_host()?,
+            labels,
+            children,
         })
     }
 }
@@ -105,11 +96,10 @@ impl DBScan {
     }
 
     pub fn fit(&self, data: &[f32], num_row: usize, num_col: usize) -> Result<Vec<i32>, CumlError> {
-        let d_data = DeviceVectorFloat::from_slice(data)?;
-        let mut d_labels = DeviceVectorInt::new(num_row)?;
+        let mut labels = vec![0; num_row];
 
         clustering::dbscan(
-            &d_data,
+            &data,
             num_row,
             num_col,
             self.min_pts,
@@ -117,10 +107,10 @@ impl DBScan {
             self.metric as i32,
             self.max_bytes_per_batch,
             self.verbosity as i32,
-            &mut d_labels,
+            &mut labels,
         )?;
 
-        d_labels.to_host()
+        Ok(labels)
     }
 }
 
@@ -195,18 +185,13 @@ impl Kmeans {
         num_col: usize,
         sample_weight: Option<&[f32]>,
     ) -> Result<KmeansResult, CumlError> {
-        let d_data = DeviceVectorFloat::from_slice(data)?;
-        let d_sample_weight = sample_weight
-            .map(DeviceVectorFloat::from_slice)
-            .transpose()?;
-        let mut d_labels = DeviceVectorInt::new(num_row)?;
-        let mut d_centroids = DeviceVectorFloat::new((self.k as usize * num_col) as usize)?;
+        let mut labels = vec![0; num_row];
+        let mut centroids = vec![0f32; self.k as usize * num_col];
 
         let (inertia, n_iter) = clustering::kmeans(
-            &d_data,
+            &data,
             num_row,
             num_col,
-            d_sample_weight.as_ref().map(|x| x),
             self.k,
             self.max_iter,
             self.tol,
@@ -214,13 +199,13 @@ impl Kmeans {
             self.metric as i32,
             self.seed,
             self.verbosity as i32,
-            &mut d_labels,
-            &mut d_centroids,
+            &mut labels,
+            &mut centroids,
         )?;
 
         Ok(KmeansResult {
-            labels: d_labels.to_host()?,
-            centroids: d_centroids.to_host()?,
+            labels,
+            centroids,
             inertia,
             n_iter,
         })

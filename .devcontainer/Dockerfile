@@ -6,8 +6,9 @@ USER root
 
 RUN sed -i -r 's@http://(jp\.)?archive\.ubuntu\.com/ubuntu/?@http://ftp.jaist.ac.jp/pub/Linux/ubuntu/@g' /etc/apt/sources.list
 
-ENV CPATH=/opt/conda/include:/opt/conda/include/rapids/
-ENV LIBRARY_PATH=/opt/conda/lib:/opt/conda/lib/rapids/
+ENV CPATH=/opt/conda/include:/opt/conda/include/rapids
+ENV LIBRARY_PATH=$LIBRARY_PATH:/opt/conda/lib:/opt/conda/lib/rapids
+ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/conda/lib:/opt/conda/lib/rapids
 
 RUN apt-get update \
     && apt-get install -y \
@@ -19,6 +20,7 @@ RUN apt-get update \
     libssl-dev \
     build-essential \
     cuda-toolkit-11-8 \
+    clang \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -30,3 +32,11 @@ RUN wget https://github.com/Kitware/CMake/releases/download/v3.27.3/cmake-3.27.3
     && make install \
     && cd .. \
     && rm -r cmake-3.27.3 cmake-3.27.3.tar.gz
+
+RUN git clone https://github.com/dmlc/treelite.git -b 3.2.0 \
+    && cd treelite \
+    && mkdir build && cd build \
+    && cmake .. \
+    && make install -j$(nproc) \
+    && cd ../.. \
+    && rm -r treelite

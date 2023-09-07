@@ -89,7 +89,18 @@
         "__atomic": "cpp",
         "xhash": "cpp",
         "xstring": "cpp",
-        "xutility": "cpp"
+        "xutility": "cpp",
+        "charconv": "cpp",
+        "compare": "cpp",
+        "concepts": "cpp",
+        "numbers": "cpp",
+        "semaphore": "cpp",
+        "stop_token": "cpp",
+        "span": "cpp",
+        "cfenv": "cpp",
+        "complex": "cpp",
+        "regex": "cpp",
+        "shared_mutex": "cpp"
     },
     "go.testFlags": [
         "-v",
