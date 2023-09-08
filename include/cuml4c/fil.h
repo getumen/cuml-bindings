@@ -9,6 +9,16 @@
 
 typedef void *FILModelHandle;
 
+enum FILStatus
+{
+    FIL_SUCCESS = 0,
+    FIL_FAIL_TO_LOAD_MODEL = 1,
+    FIL_FAIL_TO_GET_NUM_CLASS = 2,
+    FIL_FAIL_TO_GET_NUM_FEATURE = 3,
+    FIL_INVALID_ARGUMENT = 4,
+    FIL_FAIL_TO_FREE_MODEL = 5,
+};
+
 EXTERN_C int FILLoadModel(
     int model_type,
     const char *filename,
@@ -22,7 +32,7 @@ EXTERN_C int FILLoadModel(
     FILModelHandle *out);
 
 EXTERN_C int FILFreeModel(
-    FILModelHandle handle);
+    FILModelHandle model);
 
 EXTERN_C int FILGetNumClasses(
     FILModelHandle model,
@@ -33,4 +43,4 @@ EXTERN_C int FILPredict(
     const float *x,
     size_t num_row,
     bool output_class_probabilities,
-    float *out);
+    float *preds);

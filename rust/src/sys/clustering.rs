@@ -4,18 +4,18 @@ use crate::errors::CumlError;
 
 use super::bindings::{AgglomerativeClusteringFit, DbscanFit, KmeansFit};
 
-pub fn agglomerative_clustering<'a>(
-    data: &'a [f32],
+pub fn agglomerative_clustering(
+    data: &[f32],
     num_row: usize,
     num_col: usize,
     pairwise_conn: bool,
     metric: i32,
     n_neighbors: i32,
     init_n_clusters: i32,
-) -> Result<(i32, Vec<i32>, Vec<i32>), CumlError> {
+    labels: &mut [i32],
+    children: &mut [i32],
+) -> Result<i32, CumlError> {
     let mut num_cluster = 0i32;
-    let mut labels = vec![0; num_row];
-    let mut children = vec![0; (num_row - 1) * 2];
 
     let result = unsafe {
         AgglomerativeClusteringFit(
@@ -36,11 +36,11 @@ pub fn agglomerative_clustering<'a>(
         Err(anyhow!("fail to AgglomerativeClusteringFit"))?
     }
 
-    Ok((num_cluster, labels, children))
+    Ok(num_cluster)
 }
 
-pub fn dbscan<'a>(
-    data: &'a [f32],
+pub fn dbscan(
+    data: &[f32],
     num_row: usize,
     num_col: usize,
     min_pts: i32,
@@ -48,8 +48,8 @@ pub fn dbscan<'a>(
     metric: i32,
     max_bytes_per_batch: usize,
     verbosity: i32,
-) -> Result<Vec<i32>, CumlError> {
-    let mut out = vec![0; num_row];
+    labels: &mut [i32],
+) -> Result<(), CumlError> {
     let result = unsafe {
         DbscanFit(
             data.as_ptr() as *const f32,
@@ -60,7 +60,7 @@ pub fn dbscan<'a>(
             metric,
             max_bytes_per_batch,
             verbosity,
-            out.as_mut_ptr() as *mut i32,
+            labels.as_mut_ptr() as *mut i32,
         )
     };
 
@@ -68,14 +68,13 @@ pub fn dbscan<'a>(
         Err(anyhow!("fail to dbscan"))?
     }
 
-    Ok(out)
+    Ok(())
 }
 
-pub fn kmeans<'a, 'b>(
-    data: &'a [f32],
+pub fn kmeans(
+    data: &[f32],
     num_row: usize,
     num_col: usize,
-    sample_weight: Option<&'b [f32]>,
     k: i32,
     max_iter: i32,
     tol: f64,
@@ -83,9 +82,9 @@ pub fn kmeans<'a, 'b>(
     metric: i32,
     seed: i32,
     verbosity: i32,
-) -> Result<(Vec<i32>, Vec<f32>, f32, i32), CumlError> {
-    let mut labels = vec![0; num_row];
-    let mut centroids = vec![0f32; k as usize * num_col];
+    labels: &mut [i32],
+    centroids: &mut [f32],
+) -> Result<(f32, i32), CumlError> {
     let mut inertia = 0f32;
     let mut n_iter = 0i32;
 
@@ -95,9 +94,8 @@ pub fn kmeans<'a, 'b>(
     let result = unsafe {
         KmeansFit(
             data.as_ptr() as *const f32,
-            num_row as usize,
-            num_col as usize,
-            sample_weight.map_or(std::ptr::null(), |x| x.as_ptr()),
+            num_row,
+            num_col,
             k,
             max_iter,
             tol,
@@ -116,5 +114,5 @@ pub fn kmeans<'a, 'b>(
         Err(anyhow!("fail to dbscan"))?
     }
 
-    Ok((labels, centroids, inertia, n_iter))
+    Ok((inertia, n_iter))
 }

@@ -1,21 +1,16 @@
-#include "async_utils.cuh"
-#include "cuda_utils.h"
-#include "handle_utils.h"
-#include "preprocessor.h"
-#include "stream_allocator.h"
 #include "cuml4c/kmeans.h"
 
-#include <thrust/async/copy.h>
-#include <thrust/device_vector.h>
+#include <thrust/copy.h>
+#include <raft/core/handle.hpp>
+#include <rmm/device_uvector.hpp>
 #include <cuml/cluster/kmeans.hpp>
 
 #include <memory>
 
 __host__ int KmeansFit(
     const float *x,
-    size_t num_row,
-    size_t num_col,
-    const float *sample_weight,
+    int num_row,
+    int num_col,
     int k,
     int max_iters,
     double tol,
@@ -29,6 +24,25 @@ __host__ int KmeansFit(
     int *n_iter)
 {
 
+    auto handle = std::make_shared<raft::handle_t>();
+
+    auto d_x = rmm::device_uvector<float>(
+        num_col * num_row,
+        handle->get_stream());
+
+    raft::update_device(d_x.data(),
+                        x,
+                        num_col * num_row,
+                        handle->get_stream());
+
+    auto d_labels = rmm::device_uvector<int>(
+        num_row,
+        handle->get_stream());
+
+    auto d_centroids = rmm::device_uvector<float>(
+        k * num_col,
+        handle->get_stream());
+
     ML::kmeans::KMeansParams params;
     params.n_clusters = k;
     params.max_iter = max_iters;
@@ -39,76 +53,32 @@ __host__ int KmeansFit(
     }
 
     params.init = static_cast<ML::kmeans::KMeansParams::InitMethod>(init_method);
-    params.seed = seed;
     params.verbosity = verbosity;
-    params.metric = metric;
-
-    auto stream_view = cuml4c::stream_allocator::getOrCreateStream();
-    raft::handle_t handle;
-    cuml4c::handle_utils::initializeHandle(handle, stream_view.value());
-
-    // kmeans input data
-    const auto value_length = num_row * num_col;
-
-    auto const n_centroid_values = params.n_clusters * num_col;
-    thrust::device_vector<float> d_src_data(value_length);
-    // TODO: async copy
-    thrust::copy(
-        x,
-        x + value_length,
-        d_src_data.begin());
-
-    thrust::device_vector<float> d_sample_weight(num_row);
-    if (sample_weight != nullptr)
-    {
-        thrust::copy(
-            sample_weight,
-            sample_weight + num_row,
-            d_sample_weight.begin());
-    }
-    else
-    {
-        thrust::fill(
-            d_sample_weight.begin(),
-            d_sample_weight.end(),
-            1.0f);
-    }
-
-    // kmeans outputs
-    thrust::device_vector<float> d_pred_centroids(n_centroid_values);
-    if (params.init == ML::kmeans::KMeansParams::InitMethod::Array)
-    {
-        // TODO: async copy
-        thrust::copy(
-            centroids,
-            centroids + n_centroid_values,
-            d_pred_centroids.begin());
-    }
-    thrust::device_vector<int> d_pred_labels(num_row);
+    params.metric = static_cast<raft::distance::DistanceType>(metric);
 
     ML::kmeans::fit_predict(
-        handle,
+        *handle,
         params,
-        d_src_data.data().get(),
+        d_x.begin(),
         num_row,
         num_col,
-        d_sample_weight.data().get(),
-        d_pred_centroids.data().get(),
-        d_pred_labels.data().get(),
+        nullptr,
+        d_centroids.begin(),
+        d_labels.begin(),
         *inertia,
         *n_iter);
 
-    // TODO: async copy
-    thrust::copy(
-        d_pred_labels.begin(),
-        d_pred_labels.end(),
-        labels);
+    raft::update_host(labels,
+                      d_labels.begin(),
+                      d_labels.size(),
+                      handle->get_stream());
 
-    // TODO: async copy
-    thrust::copy(
-        d_pred_centroids.begin(),
-        d_pred_centroids.end(),
-        centroids);
+    raft::update_host(centroids,
+                      d_centroids.begin(),
+                      d_centroids.size(),
+                      handle->get_stream());
+
+    handle->get_stream().synchronize();
 
     return 0;
 }

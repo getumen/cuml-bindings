@@ -9,19 +9,22 @@ import (
 
 func TestDBScan(t *testing.T) {
 
-	features := csvToFloat32Array(t, "testdata/feature.csv")
+	features := csvToFloat32Array(t, "../testdata/feature.csv")
 	featureCol := 30
 	featureRow := 114
 
-	result, err := cuml4go.DBScan(
-		features,
-		featureRow,
-		featureCol,
+	target := cuml4go.NewDBScan(
 		5,
 		3.0,
 		cuml4go.L2SqrtUnexpanded,
 		0,
-		0,
+		cuml4go.Info,
+	)
+
+	result, err := target.Fit(
+		features,
+		featureRow,
+		featureCol,
 	)
 
 	require.NoError(t, err)

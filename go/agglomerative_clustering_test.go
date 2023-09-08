@@ -8,18 +8,21 @@ import (
 )
 
 func TestAgglomerativeClustering(t *testing.T) {
-	features := csvToFloat32Array(t, "testdata/feature.csv")
+	features := csvToFloat32Array(t, "../testdata/feature.csv")
 	featureCol := 30
 	featureRow := 114
 
-	numCluster, labels, children, err := cuml4go.AgglomerativeClustering(
-		features,
-		featureRow,
-		featureCol,
+	target := cuml4go.NewAgglomerativeClustering(
 		false,
 		cuml4go.L2SqrtExpanded,
 		5,
 		15,
+	)
+
+	labels, children, numCluster, err := target.Fit(
+		features,
+		featureRow,
+		featureCol,
 	)
 
 	require.NoError(t, err)

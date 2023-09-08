@@ -1,10 +1,10 @@
 package cuml4go
 
-// #cgo LDFLAGS: -lcuml4c -lcuml++ -lcuml -lcumlprims
-// #include <stdlib.h>
-// #include "cuml4c/kmeans.h"
-import "C"
-import "errors"
+import (
+	"errors"
+
+	"github.com/getumen/cuml/go/rawcuml4go"
+)
 
 var (
 	ErrKmeans = errors.New("fail to kmeans")
@@ -18,18 +18,42 @@ const (
 	Array
 )
 
-func Kmeans(
-	x []float32,
-	numRow int,
-	numCol int,
-	sampleWeight []float32,
+type Kmeans struct {
+	k         int
+	maxIter   int
+	tol       float64
+	init      KmeansInit
+	metric    Metric
+	seed      int
+	verbosity LogLevel
+}
+
+func NewKmeans(
 	k int,
 	maxIter int,
 	tol float64,
 	init KmeansInit,
 	metric Metric,
 	seed int,
-	verbosity int,
+	verbosity LogLevel,
+) *Kmeans {
+	return &Kmeans{
+		k:         k,
+		maxIter:   maxIter,
+		tol:       tol,
+		init:      init,
+		metric:    metric,
+		seed:      seed,
+		verbosity: verbosity,
+	}
+}
+
+func (k *Kmeans) Fit(
+	x []float32,
+	numRow int,
+	numCol int,
+	sampleWeight []float32,
+
 ) (
 	labels []int32,
 	centroids []float32,
@@ -37,49 +61,22 @@ func Kmeans(
 	nIter int32,
 	err error,
 ) {
-	labels = make([]int32, numRow)
-	centroids = make([]float32, k*numCol)
 
-	var ret C.int
-	if sampleWeight == nil {
-		ret = C.KmeansFit(
-			(*C.float)(&x[0]),
-			(C.ulong)(numRow),
-			(C.ulong)(numCol),
-			(*C.float)(nil),
-			(C.int)(k),
-			(C.int)(maxIter),
-			(C.double)(tol),
-			C.int(init),
-			C.int(metric),
-			(C.int)(seed),
-			(C.int)(verbosity),
-			(*C.int)(&labels[0]),
-			(*C.float)(&centroids[0]),
-			(*C.float)(&inertia),
-			(*C.int)(&nIter),
-		)
-	} else {
-		ret = C.KmeansFit(
-			(*C.float)(&x[0]),
-			(C.ulong)(numRow),
-			(C.ulong)(numCol),
-			(*C.float)(&sampleWeight[0]),
-			(C.int)(k),
-			(C.int)(maxIter),
-			(C.double)(tol),
-			C.int(init),
-			C.int(metric),
-			(C.int)(seed),
-			(C.int)(verbosity),
-			(*C.int)(&labels[0]),
-			(*C.float)(&centroids[0]),
-			(*C.float)(&inertia),
-			(*C.int)(&nIter),
-		)
-	}
-
-	if ret != 0 {
+	labels, centroids, inertia, nIter, err = rawcuml4go.Kmeans(
+		x,
+		numRow,
+		numCol,
+		k.k,
+		k.maxIter,
+		k.tol,
+		int(k.init),
+		int(k.metric),
+		k.seed,
+		int(k.verbosity),
+		nil,
+		nil,
+	)
+	if err != nil {
 		err = ErrKmeans
 	}
 

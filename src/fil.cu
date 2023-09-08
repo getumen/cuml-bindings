@@ -1,16 +1,10 @@
-#include "async_utils.cuh"
-#include "cuda_utils.h"
-#include "fil_utils.h"
-#include "handle_utils.h"
-#include "preprocessor.h"
-#include "stream_allocator.h"
-#include "treelite_utils.cuh"
 #include "cuml4c/fil.h"
 
-#include <cuml/fil/fil.h>
-#include <thrust/async/copy.h>
-#include <thrust/device_vector.h>
+#include <rmm/device_uvector.hpp>
+#include <raft/core/handle.hpp>
+#include <raft/util/cudart_utils.hpp>
 #include <treelite/c_api.h>
+#include <cuml/fil/fil.h>
 
 #include <memory>
 #include <string>
@@ -28,47 +22,35 @@ namespace
   struct FILModel
   {
     __host__ FILModel(std::unique_ptr<raft::handle_t> handle,
-                      cuml4c::fil::forest_uptr forest,
+                      std::unique_ptr<ML::fil::forest32_t> forest,
                       size_t const num_classes,
                       size_t const num_features)
         : handle_(std::move(handle)), forest_(std::move(forest)),
           numClasses_(num_classes), numFeatures_(num_features) {}
 
     std::unique_ptr<raft::handle_t> const handle_;
-    // NOTE: the destruction of `forest_` must precede the destruction of
-    // `handle_`.
-    cuml4c::fil::forest_uptr forest_;
+    std::unique_ptr<ML::fil::forest32_t> forest_;
     size_t const numClasses_;
     size_t const numFeatures_;
   };
 
-  __host__ int treeliteLoadModel(ModelType const model_type, char const *filename,
-                                 cuml4c::TreeliteHandle &tl_handle)
+  __host__ int treeliteLoadModel(ModelType const model_type,
+                                 char const *filename,
+                                 ModelHandle *model_handle)
   {
     switch (model_type)
     {
     case ModelType::XGBoost:
-      return TreeliteLoadXGBoostModel(filename, tl_handle.get());
+      return TreeliteLoadXGBoostModel(filename, model_handle);
     case ModelType::XGBoostJSON:
-      return TreeliteLoadXGBoostJSON(filename, tl_handle.get());
+      return TreeliteLoadXGBoostJSON(filename, model_handle);
     case ModelType::LightGBM:
-      return TreeliteLoadLightGBMModel(filename, tl_handle.get());
+      return TreeliteLoadLightGBMModel(filename, model_handle);
     }
 
     // unreachable
     return -1;
   }
-
-  /*
-   * The 'ML::fil::treelite_params_t::threads_per_tree' and
-   * 'ML::fil::treelite_params_t::n_items' parameters are only supported in
-   * RAPIDS cuML 21.08 or above.
-   */
-  CUML4C_ASSIGN_IF_PRESENT(threads_per_tree)
-  CUML4C_NOOP_IF_ABSENT(threads_per_tree)
-
-  CUML4C_ASSIGN_IF_PRESENT(n_items)
-  CUML4C_NOOP_IF_ABSENT(n_items)
 
 } // namespace
 
@@ -85,16 +67,38 @@ __host__ int FILLoadModel(
     FILModelHandle *out)
 {
 
-  cuml4c::TreeliteHandle tl_handle;
+  ModelHandle model_handle;
   {
-    auto const rc = treeliteLoadModel(
+    auto const res = treeliteLoadModel(
         /*model_type=*/static_cast<ModelType>(model_type),
         /*filename=*/filename,
-        tl_handle);
-    if (rc < 0)
+        &model_handle);
+    if (res < 0)
     {
-      return -1;
+      return FIL_FAIL_TO_LOAD_MODEL;
     }
+  }
+
+  size_t num_features = 0;
+  {
+    auto res = TreeliteQueryNumFeature(model_handle, &num_features);
+    if (res < 0)
+    {
+      return FIL_FAIL_TO_GET_NUM_FEATURE;
+    }
+  }
+
+  size_t num_classes = 0;
+  if (classification)
+  {
+    auto res = TreeliteQueryNumClass(model_handle, &num_classes);
+    if (res < 0)
+    {
+      return FIL_FAIL_TO_GET_NUM_CLASS;
+    }
+
+    // Treelite returns 1 as number of classes for binary classification.
+    num_classes = std::max(num_classes, size_t(2));
   }
 
   ML::fil::treelite_params_t params;
@@ -104,45 +108,22 @@ __host__ int FILLoadModel(
   params.storage_type = static_cast<ML::fil::storage_type_t>(storage_type);
   params.blocks_per_sm = blocks_per_sm;
   params.output_class = classification;
-  set_threads_per_tree(params, threads_per_tree);
-  set_n_items(params, n_items);
+  params.threads_per_tree = threads_per_tree;
+  params.n_items = n_items;
   params.pforest_shape_str = nullptr;
+  params.precision = ML::fil::precision_t::PRECISION_FLOAT32;
 
-  auto stream_view = cuml4c::stream_allocator::getOrCreateStream();
   auto handle = std::make_unique<raft::handle_t>();
-  cuml4c::handle_utils::initializeHandle(*handle, stream_view.value());
 
-  auto forest = cuml4c::fil::make_forest(*handle, /*src=*/[&]
-                                         {
-    ML::fil::forest *f;
-    ML::fil::from_treelite(/*handle=*/*handle, /*pforest=*/&f,
-                           /*model=*/*tl_handle.get(),
-                           /*tl_params=*/&params);
-    return f; });
+  ML::fil::forest_variant f;
 
-  size_t num_classes = 0;
-  if (classification)
-  {
-    auto const rc = TreeliteQueryNumClass(/*handle=*/*tl_handle.get(),
-                                          /*out=*/&num_classes);
-    if (rc < 0)
-    {
-      return -1;
-    }
+  ML::fil::from_treelite(
+      /*handle=*/*handle,
+      /*pforest=*/&f,
+      /*model=*/model_handle,
+      /*tl_params=*/&params);
 
-    // Treelite returns 1 as number of classes for binary classification.
-    num_classes = std::max(num_classes, size_t(2));
-  }
-
-  size_t num_features = 0;
-  {
-    auto const rc = TreeliteQueryNumFeature(/*handle=*/*tl_handle.get(),
-                                            /*out=*/&num_features);
-    if (rc < 0)
-    {
-      return -1;
-    }
-  }
+  auto forest = std::make_unique<ML::fil::forest32_t>(std::move(std::get<ML::fil::forest32_t>(f)));
 
   auto model = std::make_unique<FILModel>(
       /*handle=*/std::move(handle),
@@ -152,23 +133,33 @@ __host__ int FILLoadModel(
 
   *out = static_cast<FILModelHandle>(model.release());
 
-  return 0;
+  {
+    auto res = TreeliteFreeModel(model_handle);
+    if (res < 0)
+    {
+      return FIL_FAIL_TO_FREE_MODEL;
+    }
+  }
+
+  return FIL_SUCCESS;
 }
 
 __host__ int FILFreeModel(
-    FILModelHandle handle)
+    FILModelHandle model)
 {
-  delete static_cast<FILModel *>(handle);
-  return 0;
+  auto model_ptr = static_cast<FILModel const *>(model);
+  ML::fil::free(*model_ptr->handle_, *model_ptr->forest_);
+  delete model_ptr;
+  return FIL_SUCCESS;
 }
 
 __host__ int FILGetNumClasses(
     FILModelHandle model,
     size_t *out)
 {
-  auto const model_xptr = static_cast<FILModel const *>(model);
-  *out = model_xptr->numClasses_;
-  return 0;
+  auto const model_ptr = static_cast<FILModel const *>(model);
+  *out = model_ptr->numClasses_;
+  return FIL_SUCCESS;
 }
 
 __host__ int FILPredict(
@@ -176,48 +167,48 @@ __host__ int FILPredict(
     const float *x,
     size_t num_row,
     bool output_class_probabilities,
-    float *out)
+    float *preds)
 {
 
-  auto const fil_model = static_cast<FILModel const *>(model);
+  auto fil_model = static_cast<FILModel *>(model);
+
+  const auto &handle = *fil_model->handle_;
 
   if (output_class_probabilities && fil_model->numClasses_ == 0)
   {
-    return -1;
+    return FIL_INVALID_ARGUMENT;
   }
 
-  auto &handle = *(fil_model->handle_);
+  auto d_x = rmm::device_uvector<float>(
+      fil_model->numFeatures_ * num_row,
+      handle.get_stream());
 
-  auto output_size = output_class_probabilities
-                         ? fil_model->numClasses_ * num_row
-                         : num_row;
+  raft::update_device(d_x.data(),
+                      x,
+                      fil_model->numFeatures_ * num_row,
+                      handle.get_stream());
 
-  const auto feature_size = fil_model->numFeatures_ * num_row;
-  // ensemble input data
-  thrust::device_vector<float> d_x(feature_size);
+  auto pred_size = output_class_probabilities
+                       ? fil_model->numClasses_ * num_row
+                       : num_row;
 
-  // TODO: async copy
-  thrust::copy(
-      x,
-      x + feature_size,
-      d_x.begin());
-
-  // ensemble output
-  thrust::device_vector<float>
-      d_preds(output_size);
+  auto d_preds = rmm::device_uvector<float>(
+      pred_size,
+      handle.get_stream());
 
   ML::fil::predict(/*h=*/handle,
-                   /*f=*/fil_model->forest_.get(),
-                   /*preds=*/d_preds.data().get(),
-                   /*data=*/d_x.data().get(),
+                   /*f=*/*fil_model->forest_,
+                   /*preds=*/d_preds.begin(),
+                   /*data=*/d_x.begin(),
                    /*num_rows=*/num_row,
                    /*predict_proba=*/output_class_probabilities);
 
-  // TODO: async copy
-  thrust::copy(
-      d_preds.begin(),
-      d_preds.end(),
-      out);
+  raft::update_host(preds,
+                    d_preds.begin(),
+                    d_preds.size(),
+                    handle.get_stream());
 
-  return 0;
+  handle.get_stream().synchronize();
+
+  return FIL_SUCCESS;
 }

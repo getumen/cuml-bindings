@@ -1,3 +1,4 @@
+use core::num;
 use std::path::Path;
 
 use crate::{
@@ -7,7 +8,7 @@ use crate::{
         fil::{fil_free_model, fil_get_num_class, fil_load_model, fil_predict},
     },
 };
-#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
+
 pub enum ModelType {
     // XGBoost xgboost model (binary model file)
     XGBoost = 0,
@@ -17,7 +18,6 @@ pub enum ModelType {
     LightGBM = 2,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
 pub enum Algo {
     // AlgoAuto choose the algorithm automatically; currently chooses NAIVE for sparse forests
     //  and BatchTreeReorg for dense ones
@@ -34,7 +34,6 @@ pub enum Algo {
     BatchTreeReorg = 3,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
 pub enum StorageType {
     // Auto decide automatically; currently always builds dense forests
     Auto = 0,
@@ -50,10 +49,8 @@ pub enum StorageType {
     Sparse8 = 3,
 }
 
-#[derive(Debug, Clone)]
 pub struct Model {
     model: FILModelHandle,
-    num_class: usize,
 }
 
 impl Model {
@@ -69,35 +66,41 @@ impl Model {
         n_items: i32,
     ) -> Result<Self, CumlError> {
         let model = fil_load_model(
-            model_type,
+            model_type as i32,
             model_path,
-            algo,
+            algo as i32,
             classification,
             threshold,
-            storage_type,
+            storage_type as i32,
             block_per_sm,
             thread_per_tree,
             n_items,
         )?;
-        let num_class = fil_get_num_class(model)?;
-        Ok(Self { model, num_class })
+        Ok(Self { model })
     }
 
-    pub fn predict<'a>(
+    pub fn predict(
         &self,
-        data: &'a [f32],
+        data: &[f32],
         num_row: usize,
         output_class_probabilities: bool,
     ) -> Result<Vec<f32>, CumlError> {
-        let result = fil_predict(
+        let mut preds = if output_class_probabilities {
+            let num_class = fil_get_num_class(self.model)?;
+            vec![0f32; num_row * num_class]
+        } else {
+            vec![0f32; num_row]
+        };
+
+        fil_predict(
             self.model,
-            data,
+            &data,
             num_row,
             output_class_probabilities,
-            self.num_class,
+            &mut preds,
         )?;
 
-        Ok(result)
+        Ok(preds)
     }
 }
 

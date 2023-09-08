@@ -1,12 +1,8 @@
-#include "async_utils.cuh"
-#include "cuda_utils.h"
-#include "handle_utils.h"
-#include "preprocessor.h"
-#include "stream_allocator.h"
 #include "cuml4c/agglomerative_clustering.h"
 
-#include <thrust/async/copy.h>
-#include <thrust/device_vector.h>
+#include <thrust/copy.h>
+#include <raft/core/handle.hpp>
+#include <rmm/device_uvector.hpp>
 #include <cuml/cluster/linkage.hpp>
 
 #include <memory>
@@ -23,29 +19,35 @@ __host__ int AgglomerativeClusteringFit(
     int *labels,
     int *children)
 {
+    auto handle = std::make_unique<raft::handle_t>();
 
-    const auto value_length = num_row * num_col;
+    auto d_x = rmm::device_uvector<float>(
+        num_col * num_row,
+        handle->get_stream());
 
-    auto stream_view = cuml4c::stream_allocator::getOrCreateStream();
-    raft::handle_t handle;
-    cuml4c::handle_utils::initializeHandle(handle, stream_view.value());
+    raft::update_device(d_x.data(),
+                        x,
+                        num_col * num_row,
+                        handle->get_stream());
 
-    // single-linkage hierarchical clustering input
-    thrust::device_vector<float> d_x(value_length);
-    thrust::copy(x, x + value_length, d_x.begin());
+    auto d_labels = rmm::device_uvector<int>(
+        num_row,
+        handle->get_stream());
+
+    auto d_children = rmm::device_uvector<int>(
+        (num_row - 1) * 2,
+        handle->get_stream());
 
     // single-linkage hierarchical clustering output
-    auto out = std::make_unique<raft::hierarchy::linkage_output<int, float>>();
-    thrust::device_vector<int> d_labels(num_row);
-    thrust::device_vector<int> d_children((num_row - 1) * 2);
-    out->labels = d_labels.data().get();
-    out->children = d_children.data().get();
+    auto out = std::make_unique<raft::hierarchy::linkage_output<int>>();
+    out->labels = d_labels.begin();
+    out->children = d_children.begin();
 
     if (pairwise_conn)
     {
         ML::single_linkage_pairwise(
-            handle,
-            /*X=*/d_x.data().get(),
+            *handle,
+            /*X=*/d_x.begin(),
             /*m=*/num_row,
             /*n=*/num_col,
             /*out=*/out.get(),
@@ -55,8 +57,8 @@ __host__ int AgglomerativeClusteringFit(
     else
     {
         ML::single_linkage_neighbors(
-            handle,
-            /*X=*/d_x.data().get(),
+            *handle,
+            /*X=*/d_x.begin(),
             /*m=*/num_row,
             /*n=*/num_col,
             /*out=*/out.get(),
@@ -64,17 +66,19 @@ __host__ int AgglomerativeClusteringFit(
             /*c=*/n_neighbors,
             init_n_clusters);
     }
-
-    thrust::copy(
-        d_labels.begin(),
-        d_labels.end(),
-        labels);
-    thrust::copy(
-        d_children.begin(),
-        d_children.end(),
-        children);
-
     *n_clusters = out->n_clusters;
+
+    raft::update_host(labels,
+                      d_labels.begin(),
+                      d_labels.size(),
+                      handle->get_stream());
+
+    raft::update_host(children,
+                      d_children.begin(),
+                      d_children.size(),
+                      handle->get_stream());
+
+    handle->get_stream().synchronize();
 
     return 0;
 }

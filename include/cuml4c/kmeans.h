@@ -9,9 +9,8 @@
 
 EXTERN_C int KmeansFit(
     const float *x,
-    size_t num_row,
-    size_t num_col,
-    const float *sample_weight,
+    int num_row,
+    int num_col,
     int k,
     int max_iters,
     double tol,

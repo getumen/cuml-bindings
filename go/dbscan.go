@@ -1,43 +1,63 @@
 package cuml4go
 
-// #cgo LDFLAGS: -lcuml4c -lcuml++ -lcuml -lcumlprims
-// #include <stdlib.h>
-// #include "cuml4c/dbscan.h"
-import "C"
-import "errors"
+import (
+	"errors"
+
+	"github.com/getumen/cuml/go/rawcuml4go"
+)
 
 var (
 	ErrDBScan = errors.New("fail to dbscan")
 )
 
-func DBScan(
-	x []float32,
-	numRow int,
-	numCol int,
+type DBScan struct {
+	minPts           int
+	eps              float64
+	metric           Metric
+	maxBytesPerBatch int
+	verbosity        LogLevel
+}
+
+func NewDBScan(
 	minPts int,
 	eps float64,
 	metric Metric,
 	maxBytesPerBatch int,
-	verbosity int,
+	verbosity LogLevel,
+) *DBScan {
+	return &DBScan{
+		minPts:           minPts,
+		eps:              eps,
+		metric:           metric,
+		maxBytesPerBatch: maxBytesPerBatch,
+		verbosity:        verbosity,
+	}
+}
+
+func (d *DBScan) Fit(
+	x []float32,
+	numRow int,
+	numCol int,
 ) ([]int32, error) {
 
-	result := make([]int32, numRow)
-
-	ret := C.DbscanFit(
-		(*C.float)(&x[0]),
-		(C.size_t)(numRow),
-		(C.size_t)(numCol),
-		(C.int)(minPts),
-		(C.double)(eps),
-		(C.int)(metric),
-		(C.size_t)(maxBytesPerBatch),
-		(C.int)(verbosity),
-		(*C.int)(&result[0]),
+	labels, err := rawcuml4go.DBScan(
+		x,
+		numRow,
+		numCol,
+		d.minPts,
+		d.eps,
+		int(d.metric),
+		d.maxBytesPerBatch,
+		int(d.verbosity),
+		nil,
 	)
-
-	if ret != 0 {
-		return nil, ErrDBScan
+	if err != nil {
+		return nil, err
 	}
 
-	return result, nil
+	if err != nil {
+		return nil, err
+	}
+
+	return labels, nil
 }

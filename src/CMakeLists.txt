@@ -1,21 +1,11 @@
-add_library(objcuml4c OBJECT)
+cmake_minimum_required(VERSION 3.26.4 FATAL_ERROR)
 
-set(CUML_VERSION v21.08.00)
+add_library(objcuml4c OBJECT)
 
 find_package(CUDA REQUIRED)
 
 if(CUDA_FOUND)
     message("cuda version: " ${CUDA_VERSION})
-
-    # Thrust
-    find_package(Thrust REQUIRED)
-    thrust_create_target(Thrust)
-
-    # RMM
-    find_package(rmm REQUIRED)
-
-    # RAFT
-    find_package(raft REQUIRED)
 
     target_compile_options(objcuml4c PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:--expt-extended-lambda --expt-relaxed-constexpr>)
     set_target_properties(objcuml4c
@@ -26,17 +16,13 @@ if(CUDA_FOUND)
             POSITION_INDEPENDENT_CODE           ON
             INTERFACE_POSITION_INDEPENDENT_CODE ON)
 
-
-    find_package(cuml REQUIRED)
-
     target_link_libraries(objcuml4c PRIVATE 
         ${CUDA_LIBRARIES} 
-        Thrust 
-        rmm::rmm 
-        treelite 
+        treelite
+        fmt
         cuml 
         cuml++ 
-        cumlprims)
+        cumlprims_mg)
 
     target_include_directories(objcuml4c PUBLIC 
         ${PROJECT_SOURCE_DIR}/include
@@ -45,24 +31,10 @@ if(CUDA_FOUND)
 
     target_sources(objcuml4c PRIVATE
         agglomerative_clustering.cu
-        async_utils.cuh
-        cuda_utils.cu
-        cuda_utils.h
         dbscan.cu
-        device_allocator.cu
-        device_allocator.h
-        fil_utils.cu
-        fil_utils.h
         fil.cu
-        handle_utils.cu
-        handle_utils.h
         kmeans.cu
-        linear_regression.cu
-        preprocessor.h
-        stream_allocator.cu
-        stream_allocator.h
-        treelite_utils.cuh
-        unique_marker.cuh
+        memory_resource.cu
     )
 
 endif()
