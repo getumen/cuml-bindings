@@ -13,13 +13,15 @@ func TestDBScan(t *testing.T) {
 	featureCol := 30
 	featureRow := 114
 
-	target := cuml4go.NewDBScan(
+	target, err := cuml4go.NewDBScan(
 		5,
 		3.0,
 		cuml4go.L2SqrtUnexpanded,
 		0,
 		cuml4go.Info,
 	)
+
+	require.NoError(t, err)
 
 	result, err := target.Fit(
 		features,

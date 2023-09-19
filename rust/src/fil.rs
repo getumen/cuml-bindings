@@ -1,10 +1,10 @@
-use core::num;
 use std::path::Path;
 
 use crate::{
     errors::CumlError,
     sys::{
         bindings::FILModelHandle,
+        device_resource::DeviceResource,
         fil::{fil_free_model, fil_get_num_class, fil_load_model, fil_predict},
     },
 };
@@ -50,6 +50,7 @@ pub enum StorageType {
 }
 
 pub struct Model {
+    device_resource: DeviceResource,
     model: FILModelHandle,
 }
 
@@ -65,7 +66,9 @@ impl Model {
         thread_per_tree: i32,
         n_items: i32,
     ) -> Result<Self, CumlError> {
+        let device_resource = DeviceResource::new();
         let model = fil_load_model(
+            &device_resource,
             model_type as i32,
             model_path,
             algo as i32,
@@ -76,7 +79,10 @@ impl Model {
             thread_per_tree,
             n_items,
         )?;
-        Ok(Self { model })
+        Ok(Self {
+            device_resource,
+            model,
+        })
     }
 
     pub fn predict(
@@ -93,6 +99,7 @@ impl Model {
         };
 
         fil_predict(
+            &self.device_resource,
             self.model,
             &data,
             num_row,
@@ -106,6 +113,6 @@ impl Model {
 
 impl Drop for Model {
     fn drop(&mut self) {
-        fil_free_model(self.model).expect("fail to free model");
+        fil_free_model(&self.device_resource, self.model).expect("fail to free model");
     }
 }

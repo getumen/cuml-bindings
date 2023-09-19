@@ -1,4 +1,5 @@
 #include "cuml4c/agglomerative_clustering.h"
+#include "device_resource_handle.cuh"
 
 #include <thrust/copy.h>
 #include <raft/core/handle.hpp>
@@ -8,6 +9,7 @@
 #include <memory>
 
 __host__ int AgglomerativeClusteringFit(
+    const DeviceResourceHandle handle,
     const float *x,
     size_t num_row,
     size_t num_col,
@@ -19,24 +21,24 @@ __host__ int AgglomerativeClusteringFit(
     int *labels,
     int *children)
 {
-    auto handle = std::make_unique<raft::handle_t>();
+    auto handle_p = static_cast<cuml4c::DeviceResource *>(handle);
 
     auto d_x = rmm::device_uvector<float>(
         num_col * num_row,
-        handle->get_stream());
+        handle_p->handle->get_stream());
 
     raft::update_device(d_x.data(),
                         x,
                         num_col * num_row,
-                        handle->get_stream());
+                        handle_p->handle->get_stream());
 
     auto d_labels = rmm::device_uvector<int>(
         num_row,
-        handle->get_stream());
+        handle_p->handle->get_stream());
 
     auto d_children = rmm::device_uvector<int>(
         (num_row - 1) * 2,
-        handle->get_stream());
+        handle_p->handle->get_stream());
 
     // single-linkage hierarchical clustering output
     auto out = std::make_unique<raft::hierarchy::linkage_output<int>>();
@@ -46,7 +48,7 @@ __host__ int AgglomerativeClusteringFit(
     if (pairwise_conn)
     {
         ML::single_linkage_pairwise(
-            *handle,
+            *handle_p->handle,
             /*X=*/d_x.begin(),
             /*m=*/num_row,
             /*n=*/num_col,
@@ -57,7 +59,7 @@ __host__ int AgglomerativeClusteringFit(
     else
     {
         ML::single_linkage_neighbors(
-            *handle,
+            *handle_p->handle,
             /*X=*/d_x.begin(),
             /*m=*/num_row,
             /*n=*/num_col,
@@ -71,14 +73,14 @@ __host__ int AgglomerativeClusteringFit(
     raft::update_host(labels,
                       d_labels.begin(),
                       d_labels.size(),
-                      handle->get_stream());
+                      handle_p->handle->get_stream());
 
     raft::update_host(children,
                       d_children.begin(),
                       d_children.size(),
-                      handle->get_stream());
+                      handle_p->handle->get_stream());
 
-    handle->get_stream().synchronize();
+    handle_p->handle->get_stream().synchronize();
 
     return 0;
 }

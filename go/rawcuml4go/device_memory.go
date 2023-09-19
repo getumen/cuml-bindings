@@ -1,6 +1,6 @@
 package rawcuml4go
 
-// #cgo LDFLAGS: -lcuml4c -lcuml++ -lcuml -lcumlprims_mg
+// #cgo LDFLAGS: -lcuml4c -lcuml++ -lcuml
 // #include <stdlib.h>
 // #include "cuml4c/memory_resource.h"
 import "C"

@@ -1,4 +1,9 @@
-use crate::{errors::CumlError, log_level::LogLevel, metric::Metric, sys::clustering};
+use crate::{
+    errors::CumlError,
+    log_level::LogLevel,
+    metric::Metric,
+    sys::{clustering, device_resource::DeviceResource},
+};
 
 pub struct AgglomerativeClusteringResult {
     num_cluster: i32,
@@ -21,6 +26,7 @@ impl AgglomerativeClusteringResult {
 }
 
 pub struct AgglomerativeClustering {
+    device_resource: DeviceResource,
     pairwise_conn: bool,
     metric: Metric,
     n_neighbors: i32,
@@ -34,7 +40,10 @@ impl AgglomerativeClustering {
         n_neighbors: i32,
         init_n_clusters: i32,
     ) -> Self {
+        let device_resource = DeviceResource::new();
+
         Self {
+            device_resource,
             pairwise_conn,
             metric,
             n_neighbors,
@@ -51,6 +60,7 @@ impl AgglomerativeClustering {
         let mut labels = vec![0; num_row];
         let mut children = vec![0; 2 * (num_row - 1)];
         let num_cluster = clustering::agglomerative_clustering(
+            &self.device_resource,
             &data,
             num_row,
             num_col,
@@ -71,6 +81,7 @@ impl AgglomerativeClustering {
 }
 
 pub struct DBScan {
+    device_resource: DeviceResource,
     min_pts: i32,
     eps: f64,
     metric: Metric,
@@ -86,7 +97,9 @@ impl DBScan {
         max_bytes_per_batch: usize,
         verbosity: LogLevel,
     ) -> Self {
+        let device_resource = DeviceResource::new();
         Self {
+            device_resource,
             min_pts,
             eps,
             metric,
@@ -99,6 +112,7 @@ impl DBScan {
         let mut labels = vec![0; num_row];
 
         clustering::dbscan(
+            &self.device_resource,
             &data,
             num_row,
             num_col,
@@ -148,6 +162,7 @@ impl KmeansResult {
 }
 
 pub struct Kmeans {
+    device_resource: DeviceResource,
     k: i32,
     max_iter: i32,
     tol: f64,
@@ -167,7 +182,9 @@ impl Kmeans {
         seed: i32,
         verbosity: LogLevel,
     ) -> Self {
+        let device_resource = DeviceResource::new();
         Self {
+            device_resource,
             k,
             max_iter,
             tol,
@@ -189,6 +206,7 @@ impl Kmeans {
         let mut centroids = vec![0f32; self.k as usize * num_col];
 
         let (inertia, n_iter) = clustering::kmeans(
+            &self.device_resource,
             &data,
             num_row,
             num_col,

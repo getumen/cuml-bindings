@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/getumen/cuml/go/rawcuml4go"
+	"go.uber.org/multierr"
 )
 
 var (
@@ -66,7 +67,8 @@ const (
 
 // FILModel is a Forest Inference Library model.
 type FILModel struct {
-	raw *rawcuml4go.FILModel
+	raw            *rawcuml4go.FILModel
+	deviceResource *rawcuml4go.DeviceResource
 }
 
 // NewFILModel
@@ -93,7 +95,14 @@ func NewFILModel(
 	threadsPerTree int,
 	nItems int,
 ) (*FILModel, error) {
+	deviceResource, err := rawcuml4go.NewDeviceResource()
+
+	if err != nil {
+		return nil, err
+	}
+
 	raw, err := rawcuml4go.NewFILModel(
+		deviceResource,
 		int(modelType),
 		filePath,
 		int(algo),
@@ -110,7 +119,8 @@ func NewFILModel(
 	}
 
 	return &FILModel{
-		raw: raw,
+		raw:            raw,
+		deviceResource: deviceResource,
 	}, nil
 }
 
@@ -149,7 +159,10 @@ func (m *FILModel) PredictSingleClassScore(
 
 // Close frees the model.
 func (m *FILModel) Close() error {
-	return m.raw.Close()
+	var err error
+	err = multierr.Append(err, m.raw.Close())
+	err = multierr.Append(err, m.deviceResource.Close())
+	return err
 }
 
 func (m *FILModel) NumClass() int {

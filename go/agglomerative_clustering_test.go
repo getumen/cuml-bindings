@@ -12,12 +12,14 @@ func TestAgglomerativeClustering(t *testing.T) {
 	featureCol := 30
 	featureRow := 114
 
-	target := cuml4go.NewAgglomerativeClustering(
+	target, err := cuml4go.NewAgglomerativeClustering(
 		false,
 		cuml4go.L2SqrtExpanded,
 		5,
 		15,
 	)
+
+	require.NoError(t, err)
 
 	labels, children, numCluster, err := target.Fit(
 		features,

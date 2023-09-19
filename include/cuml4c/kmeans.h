@@ -7,7 +7,10 @@
 #include <stdio.h>
 #endif
 
+#include "cuml4c/device_resource_handle.h"
+
 EXTERN_C int KmeansFit(
+    const DeviceResourceHandle handle,
     const float *x,
     int num_row,
     int num_col,

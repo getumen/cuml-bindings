@@ -1206,8 +1206,16 @@ extern "C" {
 extern "C" {
     pub fn __overflow(arg1: *mut FILE, arg2: ::std::os::raw::c_int) -> ::std::os::raw::c_int;
 }
+pub type DeviceResourceHandle = *mut ::std::os::raw::c_void;
+extern "C" {
+    pub fn CreateDeviceResourceHandle(handle: *mut DeviceResourceHandle) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn FreeDeviceResourceHandle(handle: DeviceResourceHandle) -> ::std::os::raw::c_int;
+}
 extern "C" {
     pub fn AgglomerativeClusteringFit(
+        handle: DeviceResourceHandle,
         x: *const f32,
         num_row: usize,
         num_col: usize,
@@ -1222,6 +1230,7 @@ extern "C" {
 }
 extern "C" {
     pub fn DbscanFit(
+        handle: DeviceResourceHandle,
         x: *const f32,
         num_row: usize,
         num_col: usize,
@@ -1243,6 +1252,7 @@ pub const FILStatus_FIL_FAIL_TO_FREE_MODEL: FILStatus = 5;
 pub type FILStatus = ::std::os::raw::c_uint;
 extern "C" {
     pub fn FILLoadModel(
+        handle: DeviceResourceHandle,
         model_type: ::std::os::raw::c_int,
         filename: *const ::std::os::raw::c_char,
         algo: ::std::os::raw::c_int,
@@ -1256,13 +1266,17 @@ extern "C" {
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    pub fn FILFreeModel(model: FILModelHandle) -> ::std::os::raw::c_int;
+    pub fn FILFreeModel(
+        handle: DeviceResourceHandle,
+        model: FILModelHandle,
+    ) -> ::std::os::raw::c_int;
 }
 extern "C" {
     pub fn FILGetNumClasses(model: FILModelHandle, out: *mut usize) -> ::std::os::raw::c_int;
 }
 extern "C" {
     pub fn FILPredict(
+        handle: DeviceResourceHandle,
         model: FILModelHandle,
         x: *const f32,
         num_row: usize,
@@ -1272,6 +1286,7 @@ extern "C" {
 }
 extern "C" {
     pub fn KmeansFit(
+        handle: DeviceResourceHandle,
         x: *const f32,
         num_row: ::std::os::raw::c_int,
         num_col: ::std::os::raw::c_int,
@@ -1286,6 +1301,47 @@ extern "C" {
         centroids: *mut f32,
         inertia: *mut f32,
         n_iter: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn OlsFit(
+        handle: DeviceResourceHandle,
+        x: *const f32,
+        num_row: usize,
+        num_col: usize,
+        labels: *const f32,
+        fit_intercept: bool,
+        normalize: bool,
+        algo: ::std::os::raw::c_int,
+        coef: *mut f32,
+        intercept: *mut f32,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn RidgeFit(
+        handle: DeviceResourceHandle,
+        x: *const f32,
+        num_row: usize,
+        num_col: usize,
+        labels: *const f32,
+        alpha: *mut f32,
+        n_alpha: usize,
+        fit_intercept: bool,
+        normalize: bool,
+        algo: ::std::os::raw::c_int,
+        coef: *mut f32,
+        intercept: *mut f32,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn GemmPredict(
+        handle: DeviceResourceHandle,
+        x: *const f32,
+        num_row: usize,
+        num_col: usize,
+        coef: *const f32,
+        intercept: f32,
+        preds: *mut f32,
     ) -> ::std::os::raw::c_int;
 }
 pub type int_least8_t = __int_least8_t;

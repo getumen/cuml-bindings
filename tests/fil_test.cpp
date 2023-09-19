@@ -3,11 +3,13 @@
 #include <treelite/c_api.h>
 #include <gtest/gtest.h>
 
+#include "cuml4c/device_resource_handle.h"
 #include "cuml4c/memory_resource.h"
 #include "cuml4c/fil.h"
 
-TEST(CumlTest, TestTreelite)
+TEST(FILTest, TestTreelite)
 {
+
     ModelHandle handle;
     auto res = TreeliteLoadXGBoostModel("testdata/xgboost.model", &handle);
     EXPECT_EQ(res, 0);
@@ -24,13 +26,16 @@ TEST(CumlTest, TestTreelite)
     EXPECT_EQ(res, 0);
 }
 
-TEST(CumlTest, TestFIL)
+TEST(FILTest, TestFIL)
 {
+    DeviceResourceHandle device_resource_handle;
+    CreateDeviceResourceHandle(&device_resource_handle);
+
     DeviceMemoryResource mr;
     UseArenaMemoryResource(&mr);
 
     FILModelHandle handle;
-    auto res = FILLoadModel(0, "testdata/xgboost.model", 0, true, 0.5, 0, 0, 1, 0, &handle);
+    auto res = FILLoadModel(device_resource_handle, 0, "testdata/xgboost.model", 0, true, 0.5, 0, 0, 1, 0, &handle);
     EXPECT_EQ(res, 0);
 
     size_t num_classes = 0;
@@ -59,7 +64,7 @@ TEST(CumlTest, TestFIL)
     EXPECT_EQ(num_row, 114);
     EXPECT_EQ(feature.size(), 114 * 30);
 
-    res = FILPredict(handle, feature.data(), num_row, true, preds.data());
+    res = FILPredict(device_resource_handle, handle, feature.data(), num_row, true, preds.data());
     EXPECT_EQ(res, 0);
 
     {
@@ -68,16 +73,16 @@ TEST(CumlTest, TestFIL)
         int index = 0;
         while (std::getline(ifs_csv_file, line))
         {
-            std::stringstream ss(line);
-
             auto expected = std::stof(line);
             EXPECT_NEAR(expected, preds[2 * index + 1], 0.0001);
             index++;
         }
     }
 
-    res = FILFreeModel(handle);
+    res = FILFreeModel(device_resource_handle, handle);
     EXPECT_EQ(res, 0);
 
     ResetMemoryResource(mr, 2);
+
+    FreeDeviceResourceHandle(device_resource_handle);
 }

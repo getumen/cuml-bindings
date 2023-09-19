@@ -16,7 +16,9 @@ FetchContent_MakeAvailable(googletest)
 
 add_executable(
   cuml_test
+  clustering_test.cpp
   fil_test.cpp
+  linear_regression_test.cpp
 )
 
 target_compile_options(cuml_test PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:--expt-extended-lambda --expt-relaxed-constexpr>)

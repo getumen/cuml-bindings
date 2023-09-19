@@ -1,4 +1,5 @@
 #include "cuml4c/dbscan.h"
+#include "device_resource_handle.cuh"
 
 #include <thrust/copy.h>
 #include <raft/core/handle.hpp>
@@ -8,6 +9,7 @@
 #include <memory>
 
 __host__ int DbscanFit(
+    const DeviceResourceHandle handle,
     const float *x,
     size_t num_row,
     size_t num_col,
@@ -18,22 +20,22 @@ __host__ int DbscanFit(
     int verbosity,
     int *labels)
 {
-    auto handle = std::make_unique<raft::handle_t>();
+    auto handle_p = static_cast<cuml4c::DeviceResource *>(handle);
 
     auto d_x = rmm::device_uvector<float>(
         num_col * num_row,
-        handle->get_stream());
+        handle_p->handle->get_stream());
 
     raft::update_device(d_x.data(),
                         x,
                         num_col * num_row,
-                        handle->get_stream());
+                        handle_p->handle->get_stream());
 
     auto d_labels = rmm::device_uvector<int>(
         num_row,
-        handle->get_stream());
+        handle_p->handle->get_stream());
 
-    ML::Dbscan::fit(*handle,
+    ML::Dbscan::fit(*handle_p->handle,
                     /*input=*/d_x.begin(),
                     /*n_rows=*/num_row,
                     /*n_cols=*/num_col,
@@ -49,9 +51,9 @@ __host__ int DbscanFit(
     raft::update_host(labels,
                       d_labels.begin(),
                       d_labels.size(),
-                      handle->get_stream());
+                      handle_p->handle->get_stream());
 
-    handle->get_stream().synchronize();
+    handle_p->handle->get_stream().synchronize();
 
     return 0;
 }

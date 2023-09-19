@@ -7,6 +7,8 @@
 #include <stdio.h>
 #endif
 
+#include "cuml4c/device_resource_handle.h"
+
 typedef void *FILModelHandle;
 
 enum FILStatus
@@ -20,6 +22,7 @@ enum FILStatus
 };
 
 EXTERN_C int FILLoadModel(
+    const DeviceResourceHandle handle,
     int model_type,
     const char *filename,
     int algo,
@@ -32,6 +35,7 @@ EXTERN_C int FILLoadModel(
     FILModelHandle *out);
 
 EXTERN_C int FILFreeModel(
+    const DeviceResourceHandle handle,
     FILModelHandle model);
 
 EXTERN_C int FILGetNumClasses(
@@ -39,6 +43,7 @@ EXTERN_C int FILGetNumClasses(
     size_t *out);
 
 EXTERN_C int FILPredict(
+    const DeviceResourceHandle handle,
     FILModelHandle model,
     const float *x,
     size_t num_row,

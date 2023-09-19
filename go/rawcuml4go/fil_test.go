@@ -10,7 +10,12 @@ import (
 
 func TestFIL(t *testing.T) {
 
+	deviceResource, err := rawcuml4go.NewDeviceResource()
+	require.NoError(t, err)
+	defer deviceResource.Close()
+
 	target, err := rawcuml4go.NewFILModel(
+		deviceResource,
 		int(cuml4go.XGBoost),
 		"../../testdata/xgboost.model",
 		int(cuml4go.AlgoAuto),
