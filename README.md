@@ -1,6 +1,6 @@
 # cuml: [cuml](https://github.com/rapidsai/cuml) binding in Go and Rust
 
-This binding currently works for cuml 21.08.00.
+This binding currently works for cuml 23.08.00.
 
 ## Prerequirements
 
