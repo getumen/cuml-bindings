@@ -32,8 +32,10 @@ if(CUDA_FOUND)
     target_sources(objcuml4c PRIVATE
         agglomerative_clustering.cu
         dbscan.cu
+        device_resource_handle.cu
         fil.cu
         kmeans.cu
+        linear_regression.cu
         memory_resource.cu
     )
 

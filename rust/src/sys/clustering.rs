@@ -2,9 +2,13 @@ use anyhow::anyhow;
 
 use crate::errors::CumlError;
 
-use super::bindings::{AgglomerativeClusteringFit, DbscanFit, KmeansFit};
+use super::{
+    bindings::{AgglomerativeClusteringFit, DbscanFit, KmeansFit},
+    device_resource::DeviceResource,
+};
 
 pub fn agglomerative_clustering(
+    resource: &DeviceResource,
     data: &[f32],
     num_row: usize,
     num_col: usize,
@@ -19,6 +23,7 @@ pub fn agglomerative_clustering(
 
     let result = unsafe {
         AgglomerativeClusteringFit(
+            resource.handle,
             data.as_ptr() as *const f32,
             num_row,
             num_col,
@@ -40,6 +45,7 @@ pub fn agglomerative_clustering(
 }
 
 pub fn dbscan(
+    resource: &DeviceResource,
     data: &[f32],
     num_row: usize,
     num_col: usize,
@@ -52,6 +58,7 @@ pub fn dbscan(
 ) -> Result<(), CumlError> {
     let result = unsafe {
         DbscanFit(
+            resource.handle,
             data.as_ptr() as *const f32,
             num_row,
             num_col,
@@ -72,6 +79,7 @@ pub fn dbscan(
 }
 
 pub fn kmeans(
+    resource: &DeviceResource,
     data: &[f32],
     num_row: usize,
     num_col: usize,
@@ -93,6 +101,7 @@ pub fn kmeans(
 
     let result = unsafe {
         KmeansFit(
+            resource.handle,
             data.as_ptr() as *const f32,
             num_row,
             num_col,

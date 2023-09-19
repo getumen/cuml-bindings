@@ -1,4 +1,5 @@
 #include "cuml4c/fil.h"
+#include "device_resource_handle.cuh"
 
 #include <rmm/device_uvector.hpp>
 #include <raft/core/handle.hpp>
@@ -21,14 +22,13 @@ namespace
 
   struct FILModel
   {
-    __host__ FILModel(std::unique_ptr<raft::handle_t> handle,
-                      std::unique_ptr<ML::fil::forest32_t> forest,
+    __host__ FILModel(std::unique_ptr<ML::fil::forest32_t> forest,
                       size_t const num_classes,
                       size_t const num_features)
-        : handle_(std::move(handle)), forest_(std::move(forest)),
-          numClasses_(num_classes), numFeatures_(num_features) {}
+        : forest_(std::move(forest)),
+          numClasses_(num_classes),
+          numFeatures_(num_features) {}
 
-    std::unique_ptr<raft::handle_t> const handle_;
     std::unique_ptr<ML::fil::forest32_t> forest_;
     size_t const numClasses_;
     size_t const numFeatures_;
@@ -55,6 +55,7 @@ namespace
 } // namespace
 
 __host__ int FILLoadModel(
+    const DeviceResourceHandle handle,
     int model_type,
     const char *filename,
     int algo,
@@ -66,6 +67,7 @@ __host__ int FILLoadModel(
     int n_items,
     FILModelHandle *out)
 {
+  auto handle_p = static_cast<cuml4c::DeviceResource *>(handle);
 
   ModelHandle model_handle;
   {
@@ -113,12 +115,10 @@ __host__ int FILLoadModel(
   params.pforest_shape_str = nullptr;
   params.precision = ML::fil::precision_t::PRECISION_FLOAT32;
 
-  auto handle = std::make_unique<raft::handle_t>();
-
   ML::fil::forest_variant f;
 
   ML::fil::from_treelite(
-      /*handle=*/*handle,
+      /*handle=*/*handle_p->handle,
       /*pforest=*/&f,
       /*model=*/model_handle,
       /*tl_params=*/&params);
@@ -126,7 +126,6 @@ __host__ int FILLoadModel(
   auto forest = std::make_unique<ML::fil::forest32_t>(std::move(std::get<ML::fil::forest32_t>(f)));
 
   auto model = std::make_unique<FILModel>(
-      /*handle=*/std::move(handle),
       std::move(forest),
       num_classes,
       num_features);
@@ -145,10 +144,12 @@ __host__ int FILLoadModel(
 }
 
 __host__ int FILFreeModel(
+    const DeviceResourceHandle handle,
     FILModelHandle model)
 {
+  auto handle_p = static_cast<cuml4c::DeviceResource *>(handle);
   auto model_ptr = static_cast<FILModel const *>(model);
-  ML::fil::free(*model_ptr->handle_, *model_ptr->forest_);
+  ML::fil::free(*handle_p->handle, *model_ptr->forest_);
   delete model_ptr;
   return FIL_SUCCESS;
 }
@@ -163,16 +164,16 @@ __host__ int FILGetNumClasses(
 }
 
 __host__ int FILPredict(
+    const DeviceResourceHandle handle,
     FILModelHandle model,
     const float *x,
     size_t num_row,
     bool output_class_probabilities,
     float *preds)
 {
+  auto handle_p = static_cast<cuml4c::DeviceResource *>(handle);
 
   auto fil_model = static_cast<FILModel *>(model);
-
-  const auto &handle = *fil_model->handle_;
 
   if (output_class_probabilities && fil_model->numClasses_ == 0)
   {
@@ -181,12 +182,12 @@ __host__ int FILPredict(
 
   auto d_x = rmm::device_uvector<float>(
       fil_model->numFeatures_ * num_row,
-      handle.get_stream());
+      handle_p->handle->get_stream());
 
   raft::update_device(d_x.data(),
                       x,
                       fil_model->numFeatures_ * num_row,
-                      handle.get_stream());
+                      handle_p->handle->get_stream());
 
   auto pred_size = output_class_probabilities
                        ? fil_model->numClasses_ * num_row
@@ -194,9 +195,9 @@ __host__ int FILPredict(
 
   auto d_preds = rmm::device_uvector<float>(
       pred_size,
-      handle.get_stream());
+      handle_p->handle->get_stream());
 
-  ML::fil::predict(/*h=*/handle,
+  ML::fil::predict(/*h=*/*handle_p->handle,
                    /*f=*/*fil_model->forest_,
                    /*preds=*/d_preds.begin(),
                    /*data=*/d_x.begin(),
@@ -206,9 +207,9 @@ __host__ int FILPredict(
   raft::update_host(preds,
                     d_preds.begin(),
                     d_preds.size(),
-                    handle.get_stream());
+                    handle_p->handle->get_stream());
 
-  handle.get_stream().synchronize();
+  handle_p->handle->get_stream().synchronize();
 
   return FIL_SUCCESS;
 }

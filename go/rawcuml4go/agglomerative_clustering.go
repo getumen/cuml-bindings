@@ -1,6 +1,6 @@
 package rawcuml4go
 
-// #cgo LDFLAGS: -lcuml4c -lcuml++ -lcuml -lcumlprims_mg
+// #cgo LDFLAGS: -lcuml4c -lcuml++ -lcuml
 // #include <stdlib.h>
 // #include "cuml4c/agglomerative_clustering.h"
 import "C"
@@ -12,6 +12,7 @@ var (
 
 // AgglomerativeClustering is raw api for agglomerative clustering
 func AgglomerativeClustering(
+	deviceResource *DeviceResource,
 	x []float32,
 	numRow int,
 	numCol int,
@@ -39,6 +40,7 @@ func AgglomerativeClustering(
 	var numCluster int32
 
 	ret := C.AgglomerativeClusteringFit(
+		deviceResource.pointer,
 		(*C.float)(&x[0]),
 		(C.ulong)(numRow),
 		(C.ulong)(numCol),

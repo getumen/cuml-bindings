@@ -1,6 +1,6 @@
 package rawcuml4go
 
-// #cgo LDFLAGS: -ltreelite -lcuml4c -lcuml++ -lcuml -lcumlprims_mg
+// #cgo LDFLAGS: -ltreelite -lcuml4c -lcuml++ -lcuml
 // #include <stdlib.h>
 // #include "cuml4c/fil.h"
 import "C"
@@ -17,8 +17,9 @@ var (
 
 // FILModel is a Forest Inference Library model.
 type FILModel struct {
-	pointer  C.FILModelHandle
-	numClass int
+	deviceResource *DeviceResource
+	pointer        C.FILModelHandle
+	numClass       int
 }
 
 // NewFILModel
@@ -35,6 +36,7 @@ type FILModel struct {
 // nItems is how many input samples (items) any thread processes. If 0 is given,
 // choose most (up to 4) that fit into shared memory.
 func NewFILModel(
+	deviceResource *DeviceResource,
 	modelType int,
 	filePath string,
 	algo int,
@@ -47,6 +49,7 @@ func NewFILModel(
 ) (*FILModel, error) {
 	var handle C.FILModelHandle
 	ret := C.FILLoadModel(
+		deviceResource.pointer,
 		C.int(modelType),
 		C.CString(filePath),
 		C.int(algo),
@@ -69,8 +72,9 @@ func NewFILModel(
 	}
 
 	return &FILModel{
-		pointer:  handle,
-		numClass: int(numClass),
+		deviceResource: deviceResource,
+		pointer:        handle,
+		numClass:       int(numClass),
 	}, nil
 
 }
@@ -94,6 +98,7 @@ func (m *FILModel) Predict(
 	}
 
 	ret := C.FILPredict(
+		m.deviceResource.pointer,
 		m.pointer,
 		(*C.float)(&x[0]),
 		(C.size_t)(numRow),
@@ -110,7 +115,7 @@ func (m *FILModel) Predict(
 
 // Close frees the model.
 func (m *FILModel) Close() error {
-	ret := C.FILFreeModel(m.pointer)
+	ret := C.FILFreeModel(m.deviceResource.pointer, m.pointer)
 	if ret != 0 {
 		return ErrFILModelFree
 	}

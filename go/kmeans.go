@@ -19,13 +19,14 @@ const (
 )
 
 type Kmeans struct {
-	k         int
-	maxIter   int
-	tol       float64
-	init      KmeansInit
-	metric    Metric
-	seed      int
-	verbosity LogLevel
+	deviceResource *rawcuml4go.DeviceResource
+	k              int
+	maxIter        int
+	tol            float64
+	init           KmeansInit
+	metric         Metric
+	seed           int
+	verbosity      LogLevel
 }
 
 func NewKmeans(
@@ -36,16 +37,23 @@ func NewKmeans(
 	metric Metric,
 	seed int,
 	verbosity LogLevel,
-) *Kmeans {
-	return &Kmeans{
-		k:         k,
-		maxIter:   maxIter,
-		tol:       tol,
-		init:      init,
-		metric:    metric,
-		seed:      seed,
-		verbosity: verbosity,
+) (*Kmeans, error) {
+	deviceResource, err := rawcuml4go.NewDeviceResource()
+
+	if err != nil {
+		return nil, err
 	}
+
+	return &Kmeans{
+		deviceResource: deviceResource,
+		k:              k,
+		maxIter:        maxIter,
+		tol:            tol,
+		init:           init,
+		metric:         metric,
+		seed:           seed,
+		verbosity:      verbosity,
+	}, nil
 }
 
 func (k *Kmeans) Fit(
@@ -63,6 +71,7 @@ func (k *Kmeans) Fit(
 ) {
 
 	labels, centroids, inertia, nIter, err = rawcuml4go.Kmeans(
+		k.deviceResource,
 		x,
 		numRow,
 		numCol,

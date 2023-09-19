@@ -7,7 +7,10 @@
 #include <stdio.h>
 #endif
 
+#include "cuml4c/device_resource_handle.h"
+
 EXTERN_C int AgglomerativeClusteringFit(
+    const DeviceResourceHandle handle,
     const float *x,
     size_t num_row,
     size_t num_col,

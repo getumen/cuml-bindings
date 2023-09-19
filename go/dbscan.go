@@ -11,6 +11,7 @@ var (
 )
 
 type DBScan struct {
+	deviceResource   *rawcuml4go.DeviceResource
 	minPts           int
 	eps              float64
 	metric           Metric
@@ -24,14 +25,21 @@ func NewDBScan(
 	metric Metric,
 	maxBytesPerBatch int,
 	verbosity LogLevel,
-) *DBScan {
+) (*DBScan, error) {
+	deviceResource, err := rawcuml4go.NewDeviceResource()
+
+	if err != nil {
+		return nil, err
+	}
+
 	return &DBScan{
+		deviceResource:   deviceResource,
 		minPts:           minPts,
 		eps:              eps,
 		metric:           metric,
 		maxBytesPerBatch: maxBytesPerBatch,
 		verbosity:        verbosity,
-	}
+	}, nil
 }
 
 func (d *DBScan) Fit(
@@ -41,6 +49,7 @@ func (d *DBScan) Fit(
 ) ([]int32, error) {
 
 	labels, err := rawcuml4go.DBScan(
+		d.deviceResource,
 		x,
 		numRow,
 		numCol,
@@ -60,4 +69,8 @@ func (d *DBScan) Fit(
 	}
 
 	return labels, nil
+}
+
+func (d *DBScan) Close() error {
+	return d.deviceResource.Close()
 }

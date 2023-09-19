@@ -1,6 +1,6 @@
 package rawcuml4go
 
-// #cgo LDFLAGS: -lcuml4c -lcuml++ -lcuml -lcumlprims_mg
+// #cgo LDFLAGS: -lcuml4c -lcuml++ -lcuml
 // #include <stdlib.h>
 // #include "cuml4c/dbscan.h"
 import "C"
@@ -12,6 +12,7 @@ var (
 
 // DBScan is raw api for dbscan
 func DBScan(
+	deviceResource *DeviceResource,
 	x []float32,
 	numRow int,
 	numCol int,
@@ -28,6 +29,7 @@ func DBScan(
 	}
 
 	ret := C.DbscanFit(
+		deviceResource.pointer,
 		(*C.float)(&x[0]),
 		(C.size_t)(numRow),
 		(C.size_t)(numCol),

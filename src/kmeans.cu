@@ -1,13 +1,15 @@
 #include "cuml4c/kmeans.h"
+#include "device_resource_handle.cuh"
 
-#include <thrust/copy.h>
 #include <raft/core/handle.hpp>
 #include <rmm/device_uvector.hpp>
 #include <cuml/cluster/kmeans.hpp>
 
 #include <memory>
 
-__host__ int KmeansFit(
+__host__ int
+KmeansFit(
+    const DeviceResourceHandle handle,
     const float *x,
     int num_row,
     int num_col,
@@ -23,25 +25,24 @@ __host__ int KmeansFit(
     float *inertia,
     int *n_iter)
 {
-
-    auto handle = std::make_shared<raft::handle_t>();
+    auto handle_p = static_cast<cuml4c::DeviceResource *>(handle);
 
     auto d_x = rmm::device_uvector<float>(
         num_col * num_row,
-        handle->get_stream());
+        handle_p->handle->get_stream());
 
     raft::update_device(d_x.data(),
                         x,
                         num_col * num_row,
-                        handle->get_stream());
+                        handle_p->handle->get_stream());
 
     auto d_labels = rmm::device_uvector<int>(
         num_row,
-        handle->get_stream());
+        handle_p->handle->get_stream());
 
     auto d_centroids = rmm::device_uvector<float>(
         k * num_col,
-        handle->get_stream());
+        handle_p->handle->get_stream());
 
     ML::kmeans::KMeansParams params;
     params.n_clusters = k;
@@ -57,7 +58,7 @@ __host__ int KmeansFit(
     params.metric = static_cast<raft::distance::DistanceType>(metric);
 
     ML::kmeans::fit_predict(
-        *handle,
+        *handle_p->handle,
         params,
         d_x.begin(),
         num_row,
@@ -71,14 +72,14 @@ __host__ int KmeansFit(
     raft::update_host(labels,
                       d_labels.begin(),
                       d_labels.size(),
-                      handle->get_stream());
+                      handle_p->handle->get_stream());
 
     raft::update_host(centroids,
                       d_centroids.begin(),
                       d_centroids.size(),
-                      handle->get_stream());
+                      handle_p->handle->get_stream());
 
-    handle->get_stream().synchronize();
+    handle_p->handle->get_stream().synchronize();
 
     return 0;
 }

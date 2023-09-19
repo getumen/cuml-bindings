@@ -1,6 +1,6 @@
 package rawcuml4go
 
-// #cgo LDFLAGS: -lcuml4c -lcuml++ -lcuml -lcumlprims_mg
+// #cgo LDFLAGS: -lcuml4c -lcuml++ -lcuml
 // #include <stdlib.h>
 // #include "cuml4c/kmeans.h"
 import "C"
@@ -11,6 +11,7 @@ var (
 )
 
 func Kmeans(
+	deviceResource *DeviceResource,
 	x []float32,
 	numRow int,
 	numCol int,
@@ -43,6 +44,7 @@ func Kmeans(
 
 	var ret C.int
 	ret = C.KmeansFit(
+		deviceResource.pointer,
 		(*C.float)(&x[0]),
 		(C.int)(numRow),
 		(C.int)(numCol),

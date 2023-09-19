@@ -4,9 +4,13 @@ use anyhow::{anyhow, Context};
 
 use crate::errors::CumlError;
 
-use super::bindings::{FILFreeModel, FILGetNumClasses, FILLoadModel, FILModelHandle, FILPredict};
+use super::{
+    bindings::{FILFreeModel, FILGetNumClasses, FILLoadModel, FILModelHandle, FILPredict},
+    device_resource::DeviceResource,
+};
 
 pub fn fil_load_model<P: AsRef<Path>>(
+    resource: &DeviceResource,
     model_type: i32,
     model_path: P,
     algo: i32,
@@ -23,6 +27,7 @@ pub fn fil_load_model<P: AsRef<Path>>(
 
     let result = unsafe {
         FILLoadModel(
+            resource.handle,
             model_type,
             model_path.as_ptr(),
             algo,
@@ -41,8 +46,8 @@ pub fn fil_load_model<P: AsRef<Path>>(
     Ok(out)
 }
 
-pub fn fil_free_model(model: FILModelHandle) -> Result<(), CumlError> {
-    let result = unsafe { FILFreeModel(model) };
+pub fn fil_free_model(resource: &DeviceResource, model: FILModelHandle) -> Result<(), CumlError> {
+    let result = unsafe { FILFreeModel(resource.handle, model) };
     if result != 0 {
         Err(anyhow!("fail to free model"))?
     }
@@ -50,6 +55,7 @@ pub fn fil_free_model(model: FILModelHandle) -> Result<(), CumlError> {
 }
 
 pub fn fil_predict(
+    resource: &DeviceResource,
     model: FILModelHandle,
     data: &[f32],
     num_row: usize,
@@ -58,6 +64,7 @@ pub fn fil_predict(
 ) -> Result<(), CumlError> {
     let result = unsafe {
         FILPredict(
+            resource.handle,
             model,
             data.as_ptr() as *const f32,
             num_row,

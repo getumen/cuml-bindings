@@ -11,6 +11,7 @@ var (
 )
 
 type AgglomerativeClustering struct {
+	deviceResource *rawcuml4go.DeviceResource
 	pairwiseConn   bool
 	metric         Metric
 	initNumCluster int
@@ -22,13 +23,20 @@ func NewAgglomerativeClustering(
 	metric Metric,
 	initNumCluster int,
 	numNeighbor int,
-) *AgglomerativeClustering {
+) (*AgglomerativeClustering, error) {
+	deviceResource, err := rawcuml4go.NewDeviceResource()
+
+	if err != nil {
+		return nil, err
+	}
+
 	return &AgglomerativeClustering{
+		deviceResource: deviceResource,
 		pairwiseConn:   pairwiseConn,
 		metric:         metric,
 		initNumCluster: initNumCluster,
 		numNeighbor:    numNeighbor,
-	}
+	}, nil
 }
 
 // Fit returns agglomerative clustering result
@@ -44,6 +52,7 @@ func (c *AgglomerativeClustering) Fit(
 ) ([]int32, []int32, int32, error) {
 
 	labels, children, numCluster, err := rawcuml4go.AgglomerativeClustering(
+		c.deviceResource,
 		x,
 		numRow,
 		numCol,
@@ -59,4 +68,8 @@ func (c *AgglomerativeClustering) Fit(
 	}
 
 	return labels, children, numCluster, nil
+}
+
+func (c *AgglomerativeClustering) Close() error {
+	return c.deviceResource.Close()
 }
