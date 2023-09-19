@@ -13,3 +13,7 @@ updates:
     directory: "/go" # Location of package manifests
     schedule:
       interval: "weekly"
+  - package-ecosystem: "pip" # See documentation for possible values
+    directory: "/testdata" # Location of package manifests
+    schedule:
+      interval: "weekly"
