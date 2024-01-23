@@ -80,7 +80,7 @@ __host__ int AgglomerativeClusteringFit(
                       d_children.size(),
                       handle_p->handle->get_stream());
 
-    handle_p->handle->get_stream().synchronize();
+    handle_p->handle->sync_stream();
 
     return 0;
 }

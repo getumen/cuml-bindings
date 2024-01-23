@@ -79,7 +79,7 @@ KmeansFit(
                       d_centroids.size(),
                       handle_p->handle->get_stream());
 
-    handle_p->handle->get_stream().synchronize();
+    handle_p->handle->sync_stream();
 
     return 0;
 }

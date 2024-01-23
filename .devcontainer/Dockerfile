@@ -6,9 +6,9 @@ USER root
 
 RUN sed -i -r 's@http://(jp\.)?archive\.ubuntu\.com/ubuntu/?@http://ftp.jaist.ac.jp/pub/Linux/ubuntu/@g' /etc/apt/sources.list
 
-ENV CPATH=/opt/conda/include:/opt/conda/include/rapids
-ENV LIBRARY_PATH=$LIBRARY_PATH:/opt/conda/lib:/opt/conda/lib/rapids
-ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/conda/lib:/opt/conda/lib/rapids
+ENV CPATH=/opt/conda/include:/opt/conda/include/rapids:/usr/local/include
+ENV LIBRARY_PATH=$LIBRARY_PATH:/opt/conda/lib:/opt/conda/lib/rapids:/usr/local/lib
+ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/conda/lib:/opt/conda/lib/rapids:/usr/local/lib
 
 RUN apt-get update \
     && apt-get install -y \

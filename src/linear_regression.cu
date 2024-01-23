@@ -62,7 +62,7 @@ __host__ int OlsFit(
                       d_coef.size(),
                       handle_p->handle->get_stream());
 
-    handle_p->handle->get_stream().synchronize();
+    handle_p->handle->sync_stream();
 
     return 0;
 }
@@ -125,7 +125,7 @@ __host__ int RidgeFit(
                       d_coef.size(),
                       handle_p->handle->get_stream());
 
-    handle_p->handle->get_stream().synchronize();
+    handle_p->handle->sync_stream();
 
     return 0;
 }
@@ -177,7 +177,7 @@ __host__ int GemmPredict(
                       d_preds.size(),
                       handle_p->handle->get_stream());
 
-    handle_p->handle->get_stream().synchronize();
+    handle_p->handle->sync_stream();
 
     return 0;
 }
