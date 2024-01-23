@@ -53,7 +53,7 @@ __host__ int DbscanFit(
                       d_labels.size(),
                       handle_p->handle->get_stream());
 
-    handle_p->handle->get_stream().synchronize();
+    handle_p->handle->sync_stream();
 
     return 0;
 }

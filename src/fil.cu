@@ -209,7 +209,7 @@ __host__ int FILPredict(
                     d_preds.size(),
                     handle_p->handle->get_stream());
 
-  handle_p->handle->get_stream().synchronize();
+  handle_p->handle->sync_stream();
 
   return FIL_SUCCESS;
 }
