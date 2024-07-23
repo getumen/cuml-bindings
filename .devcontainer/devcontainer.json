@@ -21,9 +21,5 @@
             ]
         }
     },
-    "runArgs": [
-        "--gpus",
-        "all"
-    ],
     "remoteUser": "root"
 }
