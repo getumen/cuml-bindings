@@ -9,9 +9,6 @@
             "profile": "complete"
         }
     },
-    "hostRequirements": {
-        "gpu": true
-    },
     "workspaceFolder": "/workspace/${localWorkspaceFolderBasename}",
     "workspaceMount": "source=${localWorkspaceFolder},target=/workspace/${localWorkspaceFolderBasename},type=bind",
     "customizations": {
@@ -24,9 +21,5 @@
             ]
         }
     },
-    "runArgs": [
-        "--gpus",
-        "all"
-    ],
     "remoteUser": "root"
 }

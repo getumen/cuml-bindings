@@ -1,10 +1,8 @@
-FROM rapidsai/base:23.08-cuda11.8-py3.10
+FROM rapidsai/base:24.06-cuda12.2-py3.11
 
 ENV DEBIAN_FRONTEND=noninteractive
 
 USER root
-
-RUN sed -i -r 's@http://(jp\.)?archive\.ubuntu\.com/ubuntu/?@http://ftp.jaist.ac.jp/pub/Linux/ubuntu/@g' /etc/apt/sources.list
 
 ENV CPATH=/opt/conda/include:/opt/conda/include/rapids:/usr/local/include
 ENV LIBRARY_PATH=$LIBRARY_PATH:/opt/conda/lib:/opt/conda/lib/rapids:/usr/local/lib
@@ -19,7 +17,7 @@ RUN apt-get update \
     wget \
     libssl-dev \
     build-essential \
-    cuda-toolkit-11-8 \
+    cuda-toolkit-12-2 \
     clang \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
@@ -33,7 +31,7 @@ RUN wget https://github.com/Kitware/CMake/releases/download/v3.27.3/cmake-3.27.3
     && cd .. \
     && rm -r cmake-3.27.3 cmake-3.27.3.tar.gz
 
-RUN git clone https://github.com/dmlc/treelite.git -b 3.2.0 \
+RUN git clone https://github.com/dmlc/treelite.git -b 4.1.2 \
     && cd treelite \
     && mkdir build && cd build \
     && cmake .. \
