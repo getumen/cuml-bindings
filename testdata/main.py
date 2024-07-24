@@ -4,7 +4,7 @@ import sys
 import numpy as np
 import pandas as pd
 import treelite
-import treelite_runtime
+import tl2cgen
 import xgboost as xgb
 from sklearn import datasets, model_selection
 
@@ -51,36 +51,39 @@ test_y.to_csv("label.csv", index=False, header=False, float_format="%.8f")
 
 dvalid = xgb.DMatrix(test_x)
 
+# [batch_size]
 xgboost_scores = booster.predict(dvalid)
 with open("score-xgboost.csv", "w") as f:
     for x in xgboost_scores:
         print(x, file=f)
 
-dvalid = treelite_runtime.DMatrix(test_x)
+dvalid = tl2cgen.DMatrix(test_x)
 
 model = treelite.Model.from_xgboost(booster)
 
-annotator = treelite.Annotator()
-annotator.annotate_branch(model=model, dmat=dvalid, verbose=True)
-annotator.save(path="annotation.json")
+tl2cgen.annotate_branch(model=model, dmat=dvalid, path="annotation.json", verbose=True)
 
-model.export_lib(
+tl2cgen.export_lib(
+    model=model,
     toolchain="gcc",
     libpath=f"compiled-model.{shared_library_extension}",
-    verbose=True,
     params={
         "parallel_comp": os.cpu_count(),
         "annotate_in": "annotation.json",
     },
+    verbose=True,
 )
 
-predictor = treelite_runtime.Predictor(
+predictor = tl2cgen.Predictor(
     f"compiled-model.{shared_library_extension}",
     nthread=os.cpu_count(),
     verbose=True,
 )
 
+# [batch_size, 1, 1]
 treelite_scores = predictor.predict(dvalid, verbose=True)
+
+treelite_scores = np.squeeze(treelite_scores)
 with open("score-treelite.csv", "w") as f:
     for x in treelite_scores:
         print(x, file=f)
