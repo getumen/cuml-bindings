@@ -1,10 +1,10 @@
-FROM nvidia/cuda:11.8.0-devel-ubuntu22.04
+FROM nvidia/cuda:12.2.2-devel-ubuntu22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN sed -i -r 's@http://(jp\.)?archive\.ubuntu\.com/ubuntu/?@http://ftp.jaist.ac.jp/pub/Linux/ubuntu/@g' /etc/apt/sources.list
 
-ARG CUML_VERSION=v23.08.00
+ARG CUML_VERSION=v24.06.00
 
 RUN apt-get update \
     && apt-get install -y \
@@ -22,7 +22,7 @@ RUN apt-get update \
     liblapack-dev \
     zlib1g \
     cython3 \
-    cuda-toolkit-11-8 \
+    cuda-toolkit-12-2 \
     clang \
     ccache \
     && apt-get clean \
@@ -42,7 +42,7 @@ RUN wget https://github.com/Kitware/CMake/releases/download/v3.27.3/cmake-3.27.3
     && cd .. \
     && rm -r cmake-3.27.3 cmake-3.27.3.tar.gz
 
-RUN git clone https://github.com/dmlc/treelite.git -b 3.2.0 \
+RUN git clone https://github.com/dmlc/treelite.git -b 4.1.2 \
     && cd treelite \
     && mkdir build && cd build \
     && cmake .. \
@@ -68,12 +68,12 @@ RUN git clone https://github.com/NVIDIA/nccl.git \
     && rm -rf nccl
 
 # ref. https://github.com/rapidsai/cuml/issues/2528#issuecomment-656847070
-RUN wget https://anaconda.org/nvidia/libcumlprims/23.08.00/download/linux-64/libcumlprims-23.08.00-cuda11_230809_g71c0a86_0.tar.bz2 \
+RUN wget https://anaconda.org/nvidia/libcumlprims/24.06.00/download/linux-64/libcumlprims-24.06.00-cuda12_240605_gfa5d8ef_0.tar.bz2 \
     && mkdir -p /tmp/libcumlprims/ \
-    && tar -xf libcumlprims-23.08.00-cuda11_230809_g71c0a86_0.tar.bz2 -C /tmp/libcumlprims/ \
-    && mv /tmp/libcumlprims/include/* /usr/local/include/ \
-    && mv /tmp/libcumlprims/lib/* /usr/local/lib/ \
-    && rm -rf /tmp/libcumlprims/ libcumlprims-23.08.00-cuda11_230809_g71c0a86_0.tar.bz2 \
+    && tar -xf libcumlprims-24.06.00-cuda12_240605_gfa5d8ef_0.tar.bz2 -C /tmp/libcumlprims/ \
+    && cp -R /tmp/libcumlprims/include/* /usr/local/include/ \
+    && cp -R /tmp/libcumlprims/lib/* /usr/local/lib/ \
+    && rm -rf /tmp/libcumlprims/ libcumlprims-24.06.00-cuda12_240605_gfa5d8ef_0.tar.bz2 \
     && git clone https://github.com/rapidsai/cuml.git -b ${CUML_VERSION} \
     && cd cuml/cpp \
     && mkdir build && cd build \
