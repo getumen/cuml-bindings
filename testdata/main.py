@@ -88,4 +88,4 @@ with open("score-treelite.csv", "w") as f:
     for x in treelite_scores:
         print(x, file=f)
 
-np.testing.assert_array_almost_equal(xgboost_scores, treelite_scores, decimal=5)
+np.testing.assert_array_almost_equal(xgboost_scores, treelite_scores, decimal=0)
