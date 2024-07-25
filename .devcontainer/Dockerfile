@@ -37,3 +37,11 @@ RUN git clone https://github.com/dmlc/treelite.git -b 4.1.2 \
     && make install -j$(nproc) \
     && cd ../.. \
     && rm -r treelite
+
+RUN git clone https://github.com/gabime/spdlog.git -b v1.11.0 \
+    && cd spdlog \
+    && mkdir build && cd build \
+    && cmake .. \
+    && make install -j$(nproc) \
+    && cd ../.. \
+    && rm -r spdlog
