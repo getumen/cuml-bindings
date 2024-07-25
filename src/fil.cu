@@ -9,6 +9,8 @@
 
 #include <memory>
 #include <string>
+#include <fstream>
+#include <iterator>
 
 namespace
 {
@@ -23,29 +25,36 @@ namespace
   struct FILModel
   {
     __host__ FILModel(std::unique_ptr<ML::fil::forest32_t> forest,
-                      size_t const num_classes,
-                      size_t const num_features)
+                      int const num_features)
         : forest_(std::move(forest)),
-          numClasses_(num_classes),
           numFeatures_(num_features) {}
 
     std::unique_ptr<ML::fil::forest32_t> forest_;
-    size_t const numClasses_;
-    size_t const numFeatures_;
+    int const numFeatures_;
   };
 
   __host__ int treeliteLoadModel(ModelType const model_type,
                                  char const *filename,
-                                 ModelHandle *model_handle)
+                                 TreeliteModelHandle *model_handle)
   {
+    std::string json_config = "{\"allow_unknown_field\": True}";
     switch (model_type)
     {
     case ModelType::XGBoost:
-      return TreeliteLoadXGBoostModel(filename, model_handle);
-    case ModelType::XGBoostJSON:
-      return TreeliteLoadXGBoostJSON(filename, model_handle);
+      return TreeliteLoadXGBoostModel(filename, json_config.c_str(), model_handle);
+    case ModelType::XGBoostJSON: {
+      std::ifstream file(filename); // Replace with your file name
+      if (!file.is_open()) {
+          return -1;
+      }
+      std::string content((std::istreambuf_iterator<char>(file)),
+                        std::istreambuf_iterator<char>());
+      file.close(); 
+
+      return TreeliteLoadXGBoostModelFromString(content.c_str(), content.length(), json_config.c_str(), model_handle);
+    }
     case ModelType::LightGBM:
-      return TreeliteLoadLightGBMModel(filename, model_handle);
+      return TreeliteLoadLightGBMModel(filename, json_config.c_str(), model_handle);
     }
 
     // unreachable
@@ -69,7 +78,7 @@ __host__ int FILLoadModel(
 {
   auto handle_p = static_cast<cuml4c::DeviceResource *>(handle);
 
-  ModelHandle model_handle;
+  TreeliteModelHandle model_handle;
   {
     auto const res = treeliteLoadModel(
         /*model_type=*/static_cast<ModelType>(model_type),
@@ -81,26 +90,13 @@ __host__ int FILLoadModel(
     }
   }
 
-  size_t num_features = 0;
+  int num_features = 0;
   {
     auto res = TreeliteQueryNumFeature(model_handle, &num_features);
     if (res < 0)
     {
       return FIL_FAIL_TO_GET_NUM_FEATURE;
     }
-  }
-
-  size_t num_classes = 0;
-  if (classification)
-  {
-    auto res = TreeliteQueryNumClass(model_handle, &num_classes);
-    if (res < 0)
-    {
-      return FIL_FAIL_TO_GET_NUM_CLASS;
-    }
-
-    // Treelite returns 1 as number of classes for binary classification.
-    num_classes = std::max(num_classes, size_t(2));
   }
 
   ML::fil::treelite_params_t params;
@@ -127,7 +123,6 @@ __host__ int FILLoadModel(
 
   auto model = std::make_unique<FILModel>(
       std::move(forest),
-      num_classes,
       num_features);
 
   *out = static_cast<FILModelHandle>(model.release());
@@ -154,15 +149,6 @@ __host__ int FILFreeModel(
   return FIL_SUCCESS;
 }
 
-__host__ int FILGetNumClasses(
-    FILModelHandle model,
-    size_t *out)
-{
-  auto const model_ptr = static_cast<FILModel const *>(model);
-  *out = model_ptr->numClasses_;
-  return FIL_SUCCESS;
-}
-
 __host__ int FILPredict(
     const DeviceResourceHandle handle,
     FILModelHandle model,
@@ -175,11 +161,6 @@ __host__ int FILPredict(
 
   auto fil_model = static_cast<FILModel *>(model);
 
-  if (output_class_probabilities && fil_model->numClasses_ == 0)
-  {
-    return FIL_INVALID_ARGUMENT;
-  }
-
   auto d_x = rmm::device_uvector<float>(
       fil_model->numFeatures_ * num_row,
       handle_p->handle->get_stream());
@@ -190,7 +171,7 @@ __host__ int FILPredict(
                       handle_p->handle->get_stream());
 
   auto pred_size = output_class_probabilities
-                       ? fil_model->numClasses_ * num_row
+                       ? 2 * num_row
                        : num_row;
 
   auto d_preds = rmm::device_uvector<float>(

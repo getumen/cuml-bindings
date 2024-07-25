@@ -103,7 +103,8 @@
         "shared_mutex": "cpp",
         "stream_ref": "cpp",
         "__verbose_abort": "cpp",
-        "__pragma_push": "cpp"
+        "__pragma_push": "cpp",
+        "version": "cpp"
     },
     "go.testFlags": [
         "-v",

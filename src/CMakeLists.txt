@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.26.4 FATAL_ERROR)
 add_library(objcuml4c OBJECT)
 
 find_package(CUDA REQUIRED)
+find_package(rmm 24.06.00)
 
 if(CUDA_FOUND)
     message("cuda version: " ${CUDA_VERSION})
@@ -22,7 +23,8 @@ if(CUDA_FOUND)
         fmt
         cuml 
         cuml++ 
-        cumlprims_mg)
+        cumlprims_mg
+        rmm::rmm)
 
     target_include_directories(objcuml4c PUBLIC 
         ${PROJECT_SOURCE_DIR}/include

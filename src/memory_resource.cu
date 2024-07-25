@@ -1,10 +1,12 @@
 #include "cuml4c/memory_resource.h"
 
-#include <memory>
 #include <rmm/mr/device/per_device_resource.hpp>
 #include <rmm/mr/device/pool_memory_resource.hpp>
 #include <rmm/mr/device/binning_memory_resource.hpp>
 #include <rmm/mr/device/arena_memory_resource.hpp>
+
+#include <memory>
+#include <optional>
 
 __host__ int UsePoolMemoryResource(
     size_t initial_pool_size,
@@ -13,8 +15,8 @@ __host__ int UsePoolMemoryResource(
 {
     auto mr = std::make_unique<rmm::mr::pool_memory_resource<rmm::mr::device_memory_resource>>(
         rmm::mr::get_current_device_resource(),
-        thrust::optional<size_t>(initial_pool_size),
-        thrust::optional<size_t>(maximum_pool_size));
+        initial_pool_size,
+        std::optional<size_t>(maximum_pool_size));
 
     rmm::mr::set_current_device_resource(mr.get());
 
@@ -41,10 +43,13 @@ __host__ int UseBinningMemoryResource(
 }
 
 __host__ int UseArenaMemoryResource(
-    DeviceMemoryResource *resource)
+    DeviceMemoryResource *resource,
+    size_t arena_size)
 {
     auto mr = std::make_unique<rmm::mr::arena_memory_resource<rmm::mr::device_memory_resource>>(
-        rmm::mr::get_current_device_resource());
+        rmm::mr::get_current_device_resource(),
+        std::optional<size_t>(arena_size),
+        false);
 
     rmm::mr::set_current_device_resource(mr.get());
 

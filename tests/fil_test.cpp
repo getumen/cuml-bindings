@@ -9,17 +9,10 @@
 
 TEST(FILTest, TestTreelite)
 {
+    std::string json_config = "{\"allow_unknown_field\": True}";
 
-    ModelHandle handle;
-    auto res = TreeliteLoadXGBoostModel("testdata/xgboost.model", &handle);
-    EXPECT_EQ(res, 0);
-
-    size_t num_classes = 0;
-    res = TreeliteQueryNumClass(handle, &num_classes);
-    EXPECT_EQ(res, 0);
-
-    size_t num_features = 0;
-    res = TreeliteQueryNumFeature(handle, &num_features);
+    TreeliteModelHandle handle;
+    auto res = TreeliteLoadXGBoostModel("testdata/xgboost.model", json_config.c_str(), &handle);
     EXPECT_EQ(res, 0);
 
     res = TreeliteFreeModel(handle);
@@ -32,14 +25,10 @@ TEST(FILTest, TestFIL)
     CreateDeviceResourceHandle(&device_resource_handle);
 
     DeviceMemoryResource mr;
-    UseArenaMemoryResource(&mr);
+    UseArenaMemoryResource(&mr, 1024 * 1024);
 
     FILModelHandle handle;
     auto res = FILLoadModel(device_resource_handle, 0, "testdata/xgboost.model", 0, true, 0.5, 0, 0, 1, 0, &handle);
-    EXPECT_EQ(res, 0);
-
-    size_t num_classes = 0;
-    res = FILGetNumClasses(handle, &num_classes);
     EXPECT_EQ(res, 0);
 
     std::vector<float> feature;
@@ -60,7 +49,7 @@ TEST(FILTest, TestFIL)
         }
     }
 
-    std::vector<float> preds(num_row * num_classes);
+    std::vector<float> preds(num_row * 2);
     EXPECT_EQ(num_row, 114);
     EXPECT_EQ(feature.size(), 114 * 30);
 

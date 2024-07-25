@@ -21,7 +21,8 @@ EXTERN_C int UseBinningMemoryResource(
     DeviceMemoryResource *resource);
 
 EXTERN_C int UseArenaMemoryResource(
-    DeviceMemoryResource *resource);
+    DeviceMemoryResource *resource,
+    size_t arena_size);
 
 EXTERN_C int ResetMemoryResource(
     DeviceMemoryResource resource,

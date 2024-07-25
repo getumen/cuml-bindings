@@ -44,7 +44,9 @@ __host__ int DbscanFit(
                     /*metric=*/static_cast<raft::distance::DistanceType>(metric),
                     /*labels=*/d_labels.begin(),
                     /*core_sample_indices=*/nullptr,
+                    /*sample_weight=*/nullptr,
                     max_bytes_per_batch,
+                    /*ops_nn_method=*/ML::Dbscan::BRUTE_FORCE,
                     /*verbosity=*/verbosity,
                     /*opg=*/false);
 
