@@ -19,7 +19,6 @@ var (
 type FILModel struct {
 	deviceResource *DeviceResource
 	pointer        C.FILModelHandle
-	numClass       int
 }
 
 // NewFILModel
@@ -65,16 +64,9 @@ func NewFILModel(
 		return nil, ErrFILModelLoad
 	}
 
-	var numClass uint64
-	ret = C.FILGetNumClasses(handle, (*C.ulong)(&numClass))
-	if ret != 0 {
-		return nil, ErrFILModelLoad
-	}
-
 	return &FILModel{
 		deviceResource: deviceResource,
 		pointer:        handle,
-		numClass:       int(numClass),
 	}, nil
 
 }
@@ -90,7 +82,7 @@ func (m *FILModel) Predict(
 	if preds == nil {
 		var predsLen int
 		if outputClassProbability {
-			predsLen = numRow * m.numClass
+			predsLen = numRow * 2
 		} else {
 			predsLen = numRow
 		}
@@ -120,8 +112,4 @@ func (m *FILModel) Close() error {
 		return ErrFILModelFree
 	}
 	return nil
-}
-
-func (m *FILModel) NumClass() int {
-	return m.numClass
 }

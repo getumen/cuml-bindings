@@ -5,9 +5,11 @@ use crate::{
     sys::{
         bindings::FILModelHandle,
         device_resource::DeviceResource,
-        fil::{fil_free_model, fil_get_num_class, fil_load_model, fil_predict},
+        fil::{fil_free_model, fil_load_model, fil_predict},
     },
 };
+
+const FIL_SUPPORTED_CLASS_NUM: usize = 2;
 
 pub enum ModelType {
     // XGBoost xgboost model (binary model file)
@@ -92,7 +94,7 @@ impl Model {
         output_class_probabilities: bool,
     ) -> Result<Vec<f32>, CumlError> {
         let mut preds = if output_class_probabilities {
-            let num_class = fil_get_num_class(self.model)?;
+            let num_class = FIL_SUPPORTED_CLASS_NUM;
             vec![0f32; num_row * num_class]
         } else {
             vec![0f32; num_row]

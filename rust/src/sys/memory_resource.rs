@@ -47,9 +47,9 @@ impl MemoryResource {
         })
     }
 
-    pub fn use_arena_memoryg_resource() -> Result<Self, CumlError> {
+    pub fn use_arena_memoryg_resource(arena_size: usize) -> Result<Self, CumlError> {
         let mut resource: DeviceMemoryResource = null_mut();
-        let ret = unsafe { UseArenaMemoryResource(&mut resource) };
+        let ret = unsafe { UseArenaMemoryResource(&mut resource, arena_size) };
         if ret != 0 {
             Err(anyhow!("fail to use arena memory resource"))?
         }

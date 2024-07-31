@@ -5,7 +5,7 @@ use anyhow::{anyhow, Context};
 use crate::errors::CumlError;
 
 use super::{
-    bindings::{FILFreeModel, FILGetNumClasses, FILLoadModel, FILModelHandle, FILPredict},
+    bindings::{FILFreeModel, FILLoadModel, FILModelHandle, FILPredict},
     device_resource::DeviceResource,
 };
 
@@ -77,16 +77,4 @@ pub fn fil_predict(
     }
 
     Ok(())
-}
-
-pub fn fil_get_num_class(model: FILModelHandle) -> Result<usize, CumlError> {
-    let mut out = 0usize;
-
-    let result = unsafe { FILGetNumClasses(model, &mut out) };
-
-    if result != 0 {
-        Err(anyhow!("fail to get num class"))?
-    }
-
-    Ok(out)
 }

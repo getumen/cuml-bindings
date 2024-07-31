@@ -65,12 +65,12 @@ func UseBinningMemoryResource(
 	}, nil
 }
 
-func UseArenaMemoryResource() (
+func UseArenaMemoryResource(arena_size uint64) (
 	*MemoryResource,
 	error,
 ) {
 	var pointer C.DeviceMemoryResource
-	ret := C.UseArenaMemoryResource(&pointer)
+	ret := C.UseArenaMemoryResource(&pointer, arena_size)
 	if ret != 0 {
 		return nil, ErrGetDeviceMemoryResource
 	}
