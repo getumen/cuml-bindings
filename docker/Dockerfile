@@ -2,8 +2,6 @@ FROM nvidia/cuda:12.2.2-devel-ubuntu22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN sed -i -r 's@http://(jp\.)?archive\.ubuntu\.com/ubuntu/?@http://ftp.jaist.ac.jp/pub/Linux/ubuntu/@g' /etc/apt/sources.list
-
 ARG CUML_VERSION=v24.06.00
 
 RUN apt-get update \
@@ -80,6 +78,15 @@ RUN wget https://anaconda.org/nvidia/libcumlprims/24.06.00/download/linux-64/lib
     && cmake .. \
     -DDISABLE_DEPRECATION_WARNINGS=ON \
     -DUSE_CCACHE=ON \
+    -DCMAKE_CUDA_ARCHITECTURES="native" \
     && make install \
     && cd ../../.. \
     && rm -r cuml 
+
+RUN git clone https://github.com/gabime/spdlog.git -b v1.11.0 \
+    && cd spdlog \
+    && mkdir build && cd build \
+    && cmake .. \
+    && make install -j$(nproc) \
+    && cd ../.. \
+    && rm -r spdlog
