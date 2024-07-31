@@ -12,7 +12,7 @@ TEST(FILTest, TestTreelite)
     std::string json_config = "{\"allow_unknown_field\": True}";
 
     TreeliteModelHandle handle;
-    auto res = TreeliteLoadXGBoostModel("testdata/xgboost.model", json_config.c_str(), &handle);
+    auto res = TreeliteLoadXGBoostModel("testdata/xgboost.json", json_config.c_str(), &handle);
     EXPECT_EQ(res, 0);
 
     res = TreeliteFreeModel(handle);
@@ -25,7 +25,7 @@ TEST(FILTest, TestFIL)
     CreateDeviceResourceHandle(&device_resource_handle);
 
     DeviceMemoryResource mr;
-    UseArenaMemoryResource(&mr, 1024 * 1024);
+    UseArenaMemoryResource(&mr, 64 * 1024);
 
     FILModelHandle handle;
     auto res = FILLoadModel(device_resource_handle, 0, "testdata/xgboost.model", 0, true, 0.5, 0, 0, 1, 0, &handle);
