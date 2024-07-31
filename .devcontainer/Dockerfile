@@ -4,13 +4,8 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 USER root
 
-ENV CPATH=/opt/conda/include:/opt/conda/include/rapids:/usr/local/include
-ENV LIBRARY_PATH=$LIBRARY_PATH:/opt/conda/lib:/opt/conda/lib/rapids:/usr/local/lib
-ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/conda/lib:/opt/conda/lib/rapids:/usr/local/lib
-
 RUN apt-get update \
     && apt-get install -y \
-    sudo \
     vim \
     less \
     git \
@@ -22,6 +17,10 @@ RUN apt-get update \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
+ENV CPATH=/opt/conda/include:/opt/conda/include/rapids:/usr/local/include:/usr/local/cuda/include
+ENV LIBRARY_PATH=$LIBRARY_PATH:/opt/conda/lib:/opt/conda/lib/rapids:/usr/local/lib:/usr/local/cuda/lib64
+ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/conda/lib:/opt/conda/lib/rapids:/usr/local/lib:/usr/local/cuda/lib64
+    
 RUN wget https://github.com/Kitware/CMake/releases/download/v3.27.3/cmake-3.27.3.tar.gz \
     && tar -zxf cmake-3.27.3.tar.gz \
     && cd cmake-3.27.3 \

@@ -14,7 +14,7 @@ TEST(ClusteringTest, TestAgglomerativeClustering)
     CreateDeviceResourceHandle(&device_resource_handle);
 
     DeviceMemoryResource mr;
-    UseArenaMemoryResource(&mr);
+    UseArenaMemoryResource(&mr, 1024 * 1024);
 
     std::vector<float> feature;
     size_t num_row = 0;
@@ -63,7 +63,7 @@ TEST(ClusteringTest, TestDBScan)
     CreateDeviceResourceHandle(&device_resource_handle);
 
     DeviceMemoryResource mr;
-    UseArenaMemoryResource(&mr);
+    UseArenaMemoryResource(&mr, 1024 * 1024);
 
     std::vector<float> feature;
     size_t num_row = 0;
@@ -109,7 +109,7 @@ TEST(ClusteringTest, TestKMeans)
     CreateDeviceResourceHandle(&device_resource_handle);
 
     DeviceMemoryResource mr;
-    UseArenaMemoryResource(&mr);
+    UseArenaMemoryResource(&mr, 1024 * 1024);
 
     std::vector<float> feature;
     size_t num_row = 0;

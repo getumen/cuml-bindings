@@ -38,10 +38,6 @@ EXTERN_C int FILFreeModel(
     const DeviceResourceHandle handle,
     FILModelHandle model);
 
-EXTERN_C int FILGetNumClasses(
-    FILModelHandle model,
-    size_t *out);
-
 EXTERN_C int FILPredict(
     const DeviceResourceHandle handle,
     FILModelHandle model,

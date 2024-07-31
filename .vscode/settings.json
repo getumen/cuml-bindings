@@ -100,7 +100,11 @@
         "cfenv": "cpp",
         "complex": "cpp",
         "regex": "cpp",
-        "shared_mutex": "cpp"
+        "shared_mutex": "cpp",
+        "stream_ref": "cpp",
+        "__verbose_abort": "cpp",
+        "__pragma_push": "cpp",
+        "version": "cpp"
     },
     "go.testFlags": [
         "-v",

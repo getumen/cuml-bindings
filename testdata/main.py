@@ -44,7 +44,7 @@ booster = xgb.train(
     100,
 )
 
-booster.save_model("xgboost.model")
+booster.save_model("xgboost.json")
 
 test_x.to_csv("feature.csv", index=False, header=False, float_format="%.8f")
 test_y.to_csv("label.csv", index=False, header=False, float_format="%.8f")
@@ -63,6 +63,7 @@ model = treelite.Model.from_xgboost(booster)
 
 tl2cgen.annotate_branch(model=model, dmat=dvalid, path="annotation.json", verbose=True)
 
+print("Exporting model to C code")
 tl2cgen.export_lib(
     model=model,
     toolchain="gcc",
@@ -74,12 +75,12 @@ tl2cgen.export_lib(
     verbose=True,
 )
 
+print("Predicting with Treelite")
 predictor = tl2cgen.Predictor(
     f"compiled-model.{shared_library_extension}",
-    nthread=os.cpu_count(),
-    verbose=True,
 )
 
+print("Predicting with Treelite")
 # [batch_size, 1, 1]
 treelite_scores = predictor.predict(dvalid, verbose=True)
 
