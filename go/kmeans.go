@@ -3,7 +3,7 @@ package cuml4go
 import (
 	"errors"
 
-	"github.com/getumen/cuml/go/rawcuml4go"
+	"github.com/getumen/cuml-bindings/go/rawcuml4go"
 )
 
 var (
