@@ -1,4 +1,4 @@
-module github.com/getumen/cuml/go
+module github.com/getumen/cuml-bindings/go
 
 go 1.21.0
 
