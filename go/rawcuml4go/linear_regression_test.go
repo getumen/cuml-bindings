@@ -3,8 +3,8 @@ package rawcuml4go_test
 import (
 	"testing"
 
-	cuml4go "github.com/getumen/cuml/go"
-	"github.com/getumen/cuml/go/rawcuml4go"
+	cuml4go "github.com/getumen/cuml-bindings/go"
+	"github.com/getumen/cuml-bindings/go/rawcuml4go"
 	"github.com/stretchr/testify/require"
 )
 

@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	cuml4go "github.com/getumen/cuml/go"
+	cuml4go "github.com/getumen/cuml-bindings/go"
 )
 
 func TestKmeans(t *testing.T) {

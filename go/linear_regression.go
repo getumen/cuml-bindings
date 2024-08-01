@@ -1,7 +1,7 @@
 package cuml4go
 
 import (
-	"github.com/getumen/cuml/go/rawcuml4go"
+	"github.com/getumen/cuml-bindings/go/rawcuml4go"
 )
 
 type GlmSolverAlgo int
