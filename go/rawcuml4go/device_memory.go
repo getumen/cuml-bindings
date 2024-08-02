@@ -70,7 +70,7 @@ func UseArenaMemoryResource(arena_size uint64) (
 	error,
 ) {
 	var pointer C.DeviceMemoryResource
-	ret := C.UseArenaMemoryResource(&pointer, arena_size)
+	ret := C.UseArenaMemoryResource(&pointer, (C.size_t)(arena_size))
 	if ret != 0 {
 		return nil, ErrGetDeviceMemoryResource
 	}
