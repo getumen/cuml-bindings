@@ -152,7 +152,7 @@ func (m *FILModel) PredictSingleClassScore(
 
 	result := make([]float32, numRow)
 	for i := 0; i < numRow; i++ {
-		result[i] = resultRaw[i*m.NumClass()+1]
+		result[i] = resultRaw[i*2+1]
 	}
 	return result, nil
 }
@@ -165,6 +165,3 @@ func (m *FILModel) Close() error {
 	return err
 }
 
-func (m *FILModel) NumClass() int {
-	return m.raw.NumClass()
-}
