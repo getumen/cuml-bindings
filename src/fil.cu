@@ -37,21 +37,13 @@ namespace
                                  char const *filename,
                                  TreeliteModelHandle *model_handle)
   {
-    std::string json_config = "{\"allow_unknown_field\": True}";
+    std::string json_config = "{}";
     switch (model_type)
     {
     case ModelType::XGBoost:
-      return TreeliteLoadXGBoostModel(filename, json_config.c_str(), model_handle);
+      return TreeliteLoadXGBoostModelLegacyBinary(filename, json_config.c_str(), model_handle);
     case ModelType::XGBoostJSON: {
-      std::ifstream file(filename); // Replace with your file name
-      if (!file.is_open()) {
-          return -1;
-      }
-      std::string content((std::istreambuf_iterator<char>(file)),
-                        std::istreambuf_iterator<char>());
-      file.close(); 
-
-      return TreeliteLoadXGBoostModelFromString(content.c_str(), content.length(), json_config.c_str(), model_handle);
+      return TreeliteLoadXGBoostModel(filename, json_config.c_str(), model_handle);
     }
     case ModelType::LightGBM:
       return TreeliteLoadLightGBMModel(filename, json_config.c_str(), model_handle);
